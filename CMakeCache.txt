@@ -397,6 +397,40 @@ FREETYPE_LIBRARY_DEBUG:FILEPATH=FREETYPE_LIBRARY_DEBUG-NOTFOUND
 //Path to a library.
 FREETYPE_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libfreetype.so
 
+//Disable support of compressed WOFF2 fonts.
+FT_DISABLE_BROTLI:BOOL=OFF
+
+//Disable support of bzip2 compressed fonts.
+FT_DISABLE_BZIP2:BOOL=OFF
+
+//Disable HarfBuzz (used for improving auto-hinting of OpenType
+// fonts).
+FT_DISABLE_HARFBUZZ:BOOL=OFF
+
+//Disable support of PNG compressed OpenType embedded bitmaps.
+FT_DISABLE_PNG:BOOL=OFF
+
+//Disable use of system zlib and use internal zlib library instead.
+FT_DISABLE_ZLIB:BOOL=OFF
+
+//Enable support for meaningful error descriptions.
+FT_ENABLE_ERROR_STRINGS:BOOL=OFF
+
+//Require support of compressed WOFF2 fonts.
+FT_REQUIRE_BROTLI:BOOL=OFF
+
+//Require support of bzip2 compressed fonts.
+FT_REQUIRE_BZIP2:BOOL=OFF
+
+//Require HarfBuzz for improving auto-hinting of OpenType fonts.
+FT_REQUIRE_HARFBUZZ:BOOL=OFF
+
+//Require support of PNG compressed OpenType embedded bitmaps.
+FT_REQUIRE_PNG:BOOL=OFF
+
+//Require system zlib instead of internal zlib library.
+FT_REQUIRE_ZLIB:BOOL=OFF
+
 //Path to a file.
 Fontconfig_INCLUDE_DIR:PATH=/usr/include
 
@@ -734,6 +768,15 @@ X11_xkbfile_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libxkbfile.so
 //Dependencies for the target
 assimp_LIB_DEPENDS:STATIC=general;zlibstatic;general;rt;
 
+//Value Computed by CMake
+freetype_BINARY_DIR:STATIC=/home/cicciogamer/Documents/kat/ReKat/Code/Libs/freetype
+
+//Value Computed by CMake
+freetype_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+freetype_SOURCE_DIR:STATIC=/home/cicciogamer/Documents/kat/ReKat/Code/Libs/freetype
+
 //Path to a library.
 pkgcfg_lib_PKG_FONTCONFIG_fontconfig:FILEPATH=/usr/lib/x86_64-linux-gnu/libfontconfig.so
 
@@ -910,7 +953,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=6
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=7
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

@@ -11,6 +11,8 @@ option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(Code/Libs/assimp)
 
+add_subdirectory(Code/Libs/freetype)
+
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 else()
@@ -22,8 +24,8 @@ endif()
 
 include_directories(Code/Include/
                     Code/Libs/assimp/include/
-                    Code/Libs/bullet/src/
                     Code/Libs/glad/include/
+                    Code/Libs/freetype/include/
                     Code/Libs/glfw/include/
                     Code/Libs/glm/
                     Code/Libs/stb/)
@@ -54,7 +56,7 @@ add_definitions(-DGLFW_INCLUDE_NONE
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${LIBS_SOURCES})
-target_link_libraries(${PROJECT_NAME} assimp glfw
+target_link_libraries(${PROJECT_NAME} assimp glfw freetype
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} )
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
