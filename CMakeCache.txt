@@ -73,17 +73,11 @@ ASSIMP_HUNTER_ENABLED:BOOL=OFF
 //Don't call git to get the hash.
 ASSIMP_IGNORE_GIT_HASH:BOOL=OFF
 
-//Path to a file.
-ASSIMP_INCLUDE_DIR:PATH=/usr/include
-
 //Inject debug postfix in .a/.so/.dll lib names
 ASSIMP_INJECT_DEBUG_POSTFIX:BOOL=ON
 
 //Disable this if you want to use assimp as a submodule.
 ASSIMP_INSTALL:BOOL=ON
-
-//Path to a library.
-ASSIMP_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libassimp.so
 
 //Path for library output files
 ASSIMP_LIBRARY_OUTPUT_DIRECTORY:STRING=/home/cicciogamer/Documents/kat/ReKat/Code/Libs/assimp/bin
@@ -131,8 +125,9 @@ CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
-//Choose the type of build (Debug or Release)
-CMAKE_BUILD_TYPE:STRING=Debug
+//Choose the type of build, options are: None Debug Release RelWithDebInfo
+// MinSizeRel ...
+CMAKE_BUILD_TYPE:STRING=
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -190,7 +185,7 @@ CMAKE_C_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
 //Debug Postfix for lib, samples and tools
-CMAKE_DEBUG_POSTFIX:STRING=d
+CMAKE_DEBUG_POSTFIX:STRING=
 
 //Path to a program.
 CMAKE_DLLTOOL:FILEPATH=CMAKE_DLLTOOL-NOTFOUND
@@ -437,12 +432,6 @@ Fontconfig_INCLUDE_DIR:PATH=/usr/include
 //Path to a library.
 Fontconfig_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libfontconfig.so
 
-//Path to a file.
-GLFW3_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a library.
-GLFW3_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libglfw.so
-
 //Value Computed by CMake
 GLFW_BINARY_DIR:STATIC=/home/cicciogamer/Documents/kat/ReKat/Code/Libs/glfw
 
@@ -474,47 +463,8 @@ GLFW_LIBRARY_TYPE:STRING=
 //Value Computed by CMake
 GLFW_SOURCE_DIR:STATIC=/home/cicciogamer/Documents/kat/ReKat/Code/Libs/glfw
 
-//Path to a file.
-GLM_INCLUDE_DIR:PATH=/usr/include
-
-//Value Computed by CMake
-LearnOpenGL_BINARY_DIR:STATIC=/home/cicciogamer/Documents/kat/ReKat
-
-//Value Computed by CMake
-LearnOpenGL_IS_TOP_LEVEL:STATIC=ON
-
-//Value Computed by CMake
-LearnOpenGL_SOURCE_DIR:STATIC=/home/cicciogamer/Documents/kat/ReKat
-
 //Path to a library.
 MATH_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libm.so
-
-//Path to a file.
-OPENGL_EGL_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a file.
-OPENGL_GLX_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a file.
-OPENGL_INCLUDE_DIR:PATH=/usr/include
-
-//Path to a library.
-OPENGL_egl_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libEGL.so
-
-//Path to a library.
-OPENGL_gl_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libGL.so
-
-//Path to a library.
-OPENGL_glu_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libGLU.so
-
-//Path to a library.
-OPENGL_glx_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libGLX.so
-
-//Path to a library.
-OPENGL_opengl_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libOpenGL.so
-
-//Path to a file.
-OPENGL_xmesa_INCLUDE_DIR:PATH=OPENGL_xmesa_INCLUDE_DIR-NOTFOUND
 
 //Arguments to supply to pkg-config
 PKG_CONFIG_ARGN:STRING=
@@ -996,12 +946,6 @@ CMAKE_STRIP-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
-//Details about finding GLFW3
-FIND_PACKAGE_MESSAGE_DETAILS_GLFW3:INTERNAL=[/usr/lib/x86_64-linux-gnu/libglfw.so][/usr/include][v()]
-//Details about finding GLM
-FIND_PACKAGE_MESSAGE_DETAILS_GLM:INTERNAL=[/usr/include][v()]
-//Details about finding OpenGL
-FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[/usr/lib/x86_64-linux-gnu/libOpenGL.so][/usr/lib/x86_64-linux-gnu/libGLX.so][/usr/include][c ][v()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding X11
@@ -1036,24 +980,6 @@ HAVE_SYS_TYPES_H:INTERNAL=1
 MATH_LIBRARY-ADVANCED:INTERNAL=1
 //CHECK_TYPE_SIZE: sizeof(off64_t)
 OFF64_T:INTERNAL=8
-//ADVANCED property for variable: OPENGL_EGL_INCLUDE_DIR
-OPENGL_EGL_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_GLX_INCLUDE_DIR
-OPENGL_GLX_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_INCLUDE_DIR
-OPENGL_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_egl_LIBRARY
-OPENGL_egl_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_gl_LIBRARY
-OPENGL_gl_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_glu_LIBRARY
-OPENGL_glu_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_glx_LIBRARY
-OPENGL_glx_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_opengl_LIBRARY
-OPENGL_opengl_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: OPENGL_xmesa_INCLUDE_DIR
-OPENGL_xmesa_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: PKG_CONFIG_ARGN
 PKG_CONFIG_ARGN-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: PKG_CONFIG_EXECUTABLE

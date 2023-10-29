@@ -34,11 +34,13 @@ file(GLOB LIBS_SOURCES    Code/Libs/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Code/Include/*.hpp
                           Code/Inlcude/*.h)
 file(GLOB PROJECT_SOURCES Code/Src/*.cpp
-                          Code/Include/*.cpp)
-file(GLOB PROJECT_SHADERS Code/Shaders/*.cs
-                          Code/Shaders/*.fs
-                          Code/Shaders/*.gs
-                          Code/Shaders/*.vs)
+						  Code/Src/*/*.cpp
+                          Code/Include/*.cpp
+                          Code/Include/*/*/*.cpp)
+file(GLOB PROJECT_SHADERS Code/Resources/Shaders/*.cs
+                          Code/Resources/Shaders/*.fs
+                          Code/Resources/Shaders/*.gs
+                          Code/Resources/Shaders/*.vs)
 file(GLOB PROJECT_CONFIGS CMakeLists.txt
                           Readme.md
                          .gitattributes
@@ -63,5 +65,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Code/Shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Code/Resources $<TARGET_FILE_DIR:${PROJECT_NAME}>
     DEPENDS ${PROJECT_SHADERS})
