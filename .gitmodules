@@ -10,10 +10,10 @@
 [submodule "Code/Libs/stb"]
 	path = Code/Libs/stb
 	url = https://github.com/nothings/stb
-[submodule "Code/Libs/freetype"]
-	path = Code/Libs/freetype
-	url = https://gitlab.freedesktop.org/freetype/freetype.git
 [submodule "Code/Libs/glad"]
 	path = Code/Libs/glad
 	url = https://github.com/Dav1dde/glad
 	branch = c
+[submodule "Code/Libs/freetype"]
+	path = Code/Libs/freetype
+	url = https://github.com/freetype/freetype.git
