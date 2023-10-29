@@ -11,7 +11,8 @@ int client ( ) {
 	return 0;
 }
 
-int server ( ) {
+#if (defined (LINUX) || defined (__linux__)) // linux implementation
+nt server ( ) {
 	int node_sock;
 	sockaddr_in node_adr;
 		
@@ -65,13 +66,14 @@ int server ( ) {
 	close ( node_sock );
 	return 0;
 }
+#endif
 
 int main ( int argc, char const *argv[] ) {
 	if ( argc != 2 ) { std::cout << "no service"; return 0; }
 	switch 
 	( argv[1][0] ) {
 		case 'c': client(); break;
-		case 's': server(); break;
+		// case 's': server(); break;
 		default: std::cout << "no service"; break;
 	}
 	return 0;

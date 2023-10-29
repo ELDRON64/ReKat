@@ -33,8 +33,8 @@ include_directories(Code/Include/
 file(GLOB LIBS_SOURCES    Code/Libs/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Code/Include/*.hpp
                           Code/Inlcude/*.h)
-file(GLOB PROJECT_SOURCES Code/Src/*.cpp
-						  Code/Src/*/*.cpp
+file(GLOB PROJECT_SOURCES Code/Test/*.cpp
+						  Code/Test/*/*.cpp
                           Code/Include/*.cpp
                           Code/Include/*/*/*.cpp)
 file(GLOB PROJECT_SHADERS Code/Resources/Shaders/*.cs
