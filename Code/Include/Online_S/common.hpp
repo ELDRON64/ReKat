@@ -26,7 +26,7 @@ namespace online {
 
 	namespace {
 		std::vector<std::string> servers = {
-			"main", "127.0.0.1", "test", "127.0.0.1"
+			"main", "127.0.0.1", "test", "192.168.250.140"
 		};
 	} // private variables
 	
@@ -38,7 +38,7 @@ namespace online {
 
 	static std::vector<std::string> Get ( );
 
-	static int End ( );
+	static void End ( );
 } /* Online */ } // ReKat
 
 static std::vector<std::string> ReKat::online::Get ( ) {

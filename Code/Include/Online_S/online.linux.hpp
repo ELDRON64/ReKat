@@ -131,7 +131,7 @@ static int ReKat::online::internal::recv_buf
 	return FAILED_RECV;
 }
 
-static int ReKat::online::End 
+static void ReKat::online::End 
 ( ) { 
 	close ( internal::node_sock );
 	close ( internal::fath_sock );

@@ -1,3 +1,5 @@
+echo off
+
 cmake . -B Build 
 
 cd Build

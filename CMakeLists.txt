@@ -19,6 +19,8 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++11")
     if(NOT WIN32)
         set(GLAD_LIBRARIES dl)
+    else()
+        set(WINSOCK_LIBRARIES Ws2_32.lib Mswsock.lib AdvApi32.lib)
     endif()
 endif()
 
@@ -34,7 +36,10 @@ file(GLOB LIBS_SOURCES    Code/Libs/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Code/Include/*.hpp
                           Code/Inlcude/*.h)
 file(GLOB PROJECT_SOURCES Code/Test/*.cpp
-						  Code/Test/*/*.cpp
+                          # Code/Test/TestSock_Win/client.cpp
+                          # Code/Test/TestSock_Win/server.cpp
+                          # Code/Test/node_network/*.cpp
+                          # Code/Test/Graphik/*.cpp
                           Code/Include/*.cpp
                           Code/Include/*/*/*.cpp)
 file(GLOB PROJECT_SHADERS Code/Resources/Shaders/*.cs
@@ -59,7 +64,7 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${LIBS_SOURCES})
 target_link_libraries(${PROJECT_NAME} assimp glfw freetype
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} )
+                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} )
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
