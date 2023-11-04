@@ -35,13 +35,15 @@ include_directories(Code/Include/
 file(GLOB LIBS_SOURCES    Code/Libs/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Code/Include/*.hpp
                           Code/Inlcude/*.h)
-file(GLOB PROJECT_SOURCES Code/Test/*.cpp
+file(GLOB PROJECT_SOURCES Code/Test/help.cpp
                           # Code/Test/TestSock_Win/client.cpp
                           # Code/Test/TestSock_Win/server.cpp
                           # Code/Test/node_network/*.cpp
-                          # Code/Test/Graphik/*.cpp
+                          # Code/Test/Graphic_test/main.cpp
+                          # Code/Test/Graphik/test_lib.cpp
+                          # Code/Test/Graphik/test_freetype.cpp
                           Code/Include/*.cpp
-                          Code/Include/*/*/*.cpp)
+                          Code/Include/*/*.cpp)
 file(GLOB PROJECT_SHADERS Code/Resources/Shaders/*.cs
                           Code/Resources/Shaders/*.fs
                           Code/Resources/Shaders/*.gs
