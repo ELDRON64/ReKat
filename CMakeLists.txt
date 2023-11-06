@@ -14,9 +14,9 @@ add_subdirectory(Code/Libs/assimp)
 add_subdirectory(Code/Libs/freetype)
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /std:c++17")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++17")
     if(NOT WIN32)
         set(GLAD_LIBRARIES dl)
     else()
@@ -35,15 +35,19 @@ include_directories(Code/Include/
 file(GLOB LIBS_SOURCES    Code/Libs/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Code/Include/*.hpp
                           Code/Inlcude/*.h)
-file(GLOB PROJECT_SOURCES Code/Test/help.cpp
+file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           # Code/Test/TestSock_Win/client.cpp
                           # Code/Test/TestSock_Win/server.cpp
                           # Code/Test/node_network/*.cpp
                           # Code/Test/Graphic_test/main.cpp
                           # Code/Test/Graphik/test_lib.cpp
                           # Code/Test/Graphik/test_freetype.cpp
+                          # Code/Test/texture.cpp
+                          # Code/Test/texture_RK.cpp
+                          # Code/Test/tex.cpp
+                          # Code/Src/*.cpp
                           Code/Include/*.cpp
-                          Code/Include/*/*.cpp)
+                          Code/Include/*/number/*.cpp)
 file(GLOB PROJECT_SHADERS Code/Resources/Shaders/*.cs
                           Code/Resources/Shaders/*.fs
                           Code/Resources/Shaders/*.gs
