@@ -45,9 +45,8 @@ file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           # Code/Test/texture.cpp
                           # Code/Test/texture_RK.cpp
                           # Code/Test/tex.cpp
-                          # Code/Src/*.cpp
-                          Code/Include/*.cpp
-                          Code/Include/*/number/*.cpp)
+                          Code/Src/*.cpp
+                          Code/Include/*.cpp )
 file(GLOB PROJECT_SHADERS Code/Resources/Shaders/*.cs
                           Code/Resources/Shaders/*.fs
                           Code/Resources/Shaders/*.gs

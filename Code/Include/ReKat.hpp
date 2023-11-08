@@ -19,7 +19,9 @@
 	#endif
 #endif
 
-#include <Graphik/graphik.hpp>
+#ifdef OPENGL
+	#include <Graphik/graphik.hpp>
+#endif
 
 
 

@@ -2,12 +2,15 @@
 #include <ReKat.hpp>
 using namespace ReKat;
 
-static void ReKat::grapik::Input::Keyboard ( GLFWwindow* window, int key, int scancode, int action, int mode ) { }
-static void ReKat::grapik::Input::Mouse ( GLFWwindow* window, double xpos, double ypos ) { }
-static void ReKat::grapik::Input::ScrollWell ( GLFWwindow* window, double xoffset, double yoffset ) { }
-static void ReKat::grapik::Input::FreamBufferResize ( GLFWwindow* window, int width, int height ) { }
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <thread>
 
 #include <filesystem>
+
+bool Main_shutdown = false;
 
 int generate_id ( size_t hash ) {
     int D = time (0);
@@ -38,17 +41,121 @@ int setup ( size_t path_hash ) {
     return SUCCES;
 }
 
+enum COMMAND_STATUS {
+    SUCCESS,
+    NO_COMMAND = -1,
+    FAULTY_COMMAND = -2,
+    INCORRECT_COMMAND = -3,
+    TERMINATE = -999
+};
+
+void Connections ( ) {
+    while ( !Main_shutdown ) 
+    { online::New_Connection (); } 
+}
+
+void Recive ( std::string out ) {
+    std::ofstream _out( "out.txt" );
+    char *_buf; int status;
+    while ( !Main_shutdown ) {
+        // constanly read 
+        _buf = online::Format_String("");
+        status = online::Recv_all ( _buf, NAME_LEN ); 
+        _out << "Recv retruned: " << status << '\n';
+        _out << "_buf value: " << _buf << '\n';
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+    _out << '\n';
+    _out.close();
+}
+
+long long command ( std::string command ) {
+    // tokenize
+    // Vector of string to save tokens
+    std::vector <std::string> tokens;
+     
+    // stringstream class check1
+    std::stringstream check1(command);
+    
+    std::string intermediate;
+     
+    // Tokenizing w.r.t. space ' '
+    while ( getline ( check1, intermediate, ' ' ) ) { tokens.push_back(intermediate); }
+
+    // command set ---------------------
+    // ---------------------------------
+    if ( tokens.size( ) == 0 ) { return NO_COMMAND; }
+
+    // args: name, ip, <port>
+    if ( tokens[0] == "connect" ) {
+        if ( tokens.size ( ) == 3 ) { return online::Connect ( online::Format_String (tokens[1]), tokens[2] ); }
+        if ( tokens.size ( ) == 4 ) { return online::Connect ( online::Format_String (tokens[1]), tokens[2], tokens[3].c_str( ) ); }
+    }
+
+    // args: name, password, <port>
+    if ( tokens[0] == "start" ) {
+        if ( !( tokens.size ( ) == 3 || tokens.size ( ) == 4 ) ) { 
+            std::cout << "the command is foaulty: " << command << " size: " << tokens.size() << '\n';  
+            return FAULTY_COMMAND;
+        }
+        
+        size_t id;
+        std::hash <std::string> hasher;
+        size_t path_hash      = hasher ( tokens[1] + tokens[2] );
+        size_t generator_hash = hasher ( tokens[1] + "_" + tokens[2] );
+        setup ( path_hash );
+        id = generate_id ( path_hash );
+        
+        if ( tokens.size ( ) == 3 ) { return online::Start ( tokens[1], id ); }
+        if ( tokens.size ( ) == 4 ) { return online::Start ( tokens[1], id, tokens[3].c_str( ) ); }
+    }
+
+    // args: node, msg
+    if ( tokens[0] == "msg" ) {
+        if ( tokens.size ( ) == 3 ) { return online::Send ( tokens[2].c_str(), tokens[2].size(), online::Format_String(tokens[1]) ); }
+    }
+
+    if ( tokens[0] == "connected" ) {
+        for( auto s : online::Connected () ) {
+            std::cout << "connected to: " << s << '\n'; 
+        }
+        return SUCCESS;
+    }
+
+    std::cout << "\n" << command << " is incorrect\n";
+    return INCORRECT_COMMAND;
+}
+
 int main(int argc, char const *argv[]) {
     std::string name = "Giovanni";
-    std::string pass = "Gattone ";
+    std::string pass = "Gattone";
+    std::string port;
+    std::cout << "port: "; std::cin >> port;
 
-    std::hash <std::string> hasher;
+    long long start_result = command ( "start " + name + " " + pass + " " + port );
+    std::cout << "start result: " << ( start_result == 0 ? "succes" : "failed: " + std::to_string ( start_result ) );
 
-    size_t path_hash      = hasher ( name + pass );
-    size_t generator_hash = hasher ( name + "_" + pass );
+    std::thread recv_thread;
+    std::thread conn_thread;
 
-    setup ( path_hash );
-    std::cout << generate_id ( path_hash );
+    // start listening thread
+    if ( start_result == 0 ) { 
+        recv_thread = std::thread ( Recive, "ciao" );
+        conn_thread = std::thread ( Connections );
+    }
+    
+    std::string input;
+    int r;
+    while ( !Main_shutdown ) {
+        std::cout << "\n" << name << "$ ";
+        std::getline (std::cin, input);
+        if (input == "exit") { Main_shutdown = true; break; }
+        r = command ( input );
+        std::cout << "command result: " << r;
+    }
 
-    online::Start ( name, "6969" );
+    recv_thread.join();
+    conn_thread.join();
+    online::End ( );
 }
