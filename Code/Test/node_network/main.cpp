@@ -16,7 +16,7 @@ int main ( int argc, char const *argv[] ) {
     } else {
         std::cout << "start: " << Start ( "pippo1", "42069" ) << '\n';
         std::cout << "connection: " << New_Connection ( ) << '\n';
-        std::cout << "connected to: " << Connected () [0] << '\n';
+        std::cout << "connected to: " << Connected ( ) [0] << '\n';
         char* _buf = (char*)calloc(5,sizeof(char));
         online::Recv(_buf,4,"pippo");
         std::cout << "msg recived: " << _buf << '\n';

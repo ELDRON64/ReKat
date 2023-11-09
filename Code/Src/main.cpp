@@ -49,13 +49,16 @@ enum COMMAND_STATUS {
     TERMINATE = -999
 };
 
-void Connections ( ) {
+void Connections ( std::string out ) {
+    std::ofstream _out( out );
     while ( !Main_shutdown ) 
-    { online::New_Connection (); } 
+    {  _out << "New_connection result: " << online::New_Connection () << '\n'; } 
+    _out << '\n';
+    _out.close();
 }
 
 void Recive ( std::string out ) {
-    std::ofstream _out( "out.txt" );
+    std::ofstream _out( out );
     char *_buf; int status;
     while ( !Main_shutdown ) {
         // constanly read 
@@ -132,17 +135,35 @@ int main(int argc, char const *argv[]) {
     std::string pass = "Gattone";
     std::string port;
     std::cout << "port: "; std::cin >> port;
-
+    
     long long start_result = command ( "start " + name + " " + pass + " " + port );
-    std::cout << "start result: " << ( start_result == 0 ? "succes" : "failed: " + std::to_string ( start_result ) );
+    std::cout << "start result: " << ( start_result == 0 ? "succes" : "failed: " + std::to_string ( start_result ) ) << '\n';
 
+    if ( port == "42069" ) {
+        std::cout << "connection: " << online::New_Connection ( ) << '\n';
+        std::cout << "connected to: " << online::Connected ( ) [0] << '\n';
+        char* _buf = (char*)calloc(5,sizeof(char));
+        online::Recv(_buf,4,"pippo");
+        std::cout << "msg recived: " << _buf << '\n';
+        online::Send("giov",4,"pippo");
+    }
+
+    if ( port == "42068" ) {
+        std::cout << "new connection: " << online::Connect ("localhost", "localhost") << '\n';
+
+        online::Send("1234",4,"localhost");
+        char* _buf = (char*)calloc(5,sizeof(char));
+        online::Recv(_buf,4,"localhost");
+        std::cout << "msg recived: " << _buf << '\n';
+    }
+/*
     std::thread recv_thread;
     std::thread conn_thread;
 
     // start listening thread
     if ( start_result == 0 ) { 
-        recv_thread = std::thread ( Recive, "ciao" );
-        conn_thread = std::thread ( Connections );
+        recv_thread = std::thread ( Recive, "recive" );
+        conn_thread = std::thread ( Connections, "connections" );
     }
     
     std::string input;
@@ -158,4 +179,5 @@ int main(int argc, char const *argv[]) {
     recv_thread.join();
     conn_thread.join();
     online::End ( );
+*/
 }
