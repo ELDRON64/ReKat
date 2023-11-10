@@ -36,7 +36,6 @@ int setup ( size_t path_hash ) {
     if ( std::filesystem::exists ( path ) ) { return PATH_EXISTS; }
 
     std::filesystem::create_directory ( path );
-    std::ofstream{path+"/main_client_log"};
 
     return SUCCES;
 }
@@ -51,19 +50,18 @@ enum COMMAND_STATUS {
 
 void Connections ( std::string out ) {
     std::ofstream _out( out );
-    while ( !Main_shutdown ) 
-    {  _out << "New_connection result: " << online::New_Connection () << '\n'; } 
+    _out << "New_connection result: " << online::New_Connection () << '\n';
     _out << '\n';
     _out.close();
 }
 
-void Recive ( std::string out ) {
-    std::ofstream _out( out );
+void Recive ( std::string outpath, std::string node ) {
+    std::ofstream _out ( outpath + '/' + node );
     char *_buf; int status;
     while ( !Main_shutdown ) {
         // constanly read 
-        _buf = online::Format_String("");
-        status = online::Recv_all ( _buf, NAME_LEN ); 
+        _buf = (char*) calloc ( BUF_LEN, sizeof(char) ); 
+        status = online::Recv ( _buf, BUF_LEN, node );
         _out << "Recv retruned: " << status << '\n';
         _out << "_buf value: " << _buf << '\n';
 
@@ -96,24 +94,6 @@ long long command ( std::string command ) {
         if ( tokens.size ( ) == 4 ) { return online::Connect ( online::Format_String (tokens[1]), tokens[2], tokens[3].c_str( ) ); }
     }
 
-    // args: name, password, <port>
-    if ( tokens[0] == "start" ) {
-        if ( !( tokens.size ( ) == 3 || tokens.size ( ) == 4 ) ) { 
-            std::cout << "the command is foaulty: " << command << " size: " << tokens.size() << '\n';  
-            return FAULTY_COMMAND;
-        }
-        
-        size_t id;
-        std::hash <std::string> hasher;
-        size_t path_hash      = hasher ( tokens[1] + tokens[2] );
-        size_t generator_hash = hasher ( tokens[1] + "_" + tokens[2] );
-        setup ( path_hash );
-        id = generate_id ( path_hash );
-        
-        if ( tokens.size ( ) == 3 ) { return online::Start ( tokens[1], id ); }
-        if ( tokens.size ( ) == 4 ) { return online::Start ( tokens[1], id, tokens[3].c_str( ) ); }
-    }
-
     // args: node, msg
     if ( tokens[0] == "msg" ) {
         if ( tokens.size ( ) == 3 ) { return online::Send ( tokens[2].c_str(), tokens[2].size(), online::Format_String(tokens[1]) ); }
@@ -136,8 +116,19 @@ int main(int argc, char const *argv[]) {
     std::string port;
     std::cout << "port: "; std::cin >> port;
     
-    long long start_result = command ( "start " + name + " " + pass + " " + port );
+    long long start_result = online::Start ( name, port ) << '\n';
     std::cout << "start result: " << ( start_result == 0 ? "succes" : "failed: " + std::to_string ( start_result ) ) << '\n';
+    size_t id;
+    std::hash <std::string> hasher;
+    size_t path_hash      = hasher ( name + pass );
+    // size_t generator_hash = hasher ( name + "_" + pass );
+    setup ( path_hash );
+
+    // start new_conection node
+
+    // start a recive thread for every new_connection
+
+
 
     if ( port == "42069" ) {
         std::cout << "connection: " << online::New_Connection ( ) << '\n';

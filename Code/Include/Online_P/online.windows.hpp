@@ -23,17 +23,17 @@
 namespace ReKat {
 namespace online {
 	namespace internal {
+        char* this_name;
+
         struct node_infos {
-            SOCKET sock = INVALID_SOCKET;
-            char* internal_name;
-            size_t internal_id;
+            SOCKET sock;
+            std::string internal_name;
         };
 
-        node_infos this_node;
-
-        std::unordered_map < char* , node_infos > node_network;
+        std::unordered_map < std::string, node_infos > node_network;
 
         static WSADATA wsaData;
+        static SOCKET ListenSocket = INVALID_SOCKET;
 		
         static int send_buf ( node_infos sock, const char *buf, size_t sizeof_buf, timeval * wait_time );
 		static int recv_buf ( node_infos sock, char *buf, size_t sizeof_buf, timeval * wait_time );
@@ -41,12 +41,12 @@ namespace online {
 } /* Online */ } // ReKat
 
 int ReKat::online::Start 
-( std::string name, size_t id, const char* port ) {
-    internal::this_node.internal_name = Format_String (name);
+( std::string name, std::string port ) {
+    internal::this_name = (char*)calloc(BUF_LEN,sizeof(char));
+    for (size_t i = 0; i < name.size(); i++) { internal::this_name[i] = name[i]; }
 
     struct addrinfo *result = NULL;
     struct addrinfo hints;
-
     
     // Initialize Winsock
     if (WSAStartup(MAKEWORD(2,2), &internal::wsaData) != 0) 
@@ -59,12 +59,12 @@ int ReKat::online::Start
     hints.ai_flags = AI_PASSIVE;
 
     // Resolve the server address and port
-    if ( getaddrinfo(NULL, port, &hints, &result) != 0 ) 
+    if ( getaddrinfo(NULL, port.c_str(), &hints, &result) != 0 ) 
     { WSACleanup(); return FAILED_HOST_RESOLVE; }
 
     // Create a SOCKET for the server to listen for client connections.
-    internal::this_node.sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-    if ( internal::this_node.sock == INVALID_SOCKET ) {
+    internal::ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if ( internal::ListenSocket == INVALID_SOCKET ) {
         // printf("socket failed with error: %d\n", WSAGetLastError());
         freeaddrinfo(result);
         WSACleanup();
@@ -72,10 +72,10 @@ int ReKat::online::Start
     }
 
     // Setup the TCP listening socket
-    if ( bind( internal::this_node.sock, result->ai_addr, (int)result->ai_addrlen) == SOCKET_ERROR ) {
+    if ( bind( internal::ListenSocket, result->ai_addr, (int)result->ai_addrlen) == SOCKET_ERROR ) {
         // printf("bind failed with error: %d\n", WSAGetLastError());
         freeaddrinfo(result);
-        closesocket(internal::this_node.sock);
+        closesocket(internal::ListenSocket);
         WSACleanup();
         return FAILED_BIND;
     }
@@ -83,9 +83,9 @@ int ReKat::online::Start
     freeaddrinfo(result);
 
     // start lisening
-    if ( listen( internal::this_node.sock, SOMAXCONN ) == SOCKET_ERROR ) {
+    if ( listen( internal::ListenSocket, SOMAXCONN ) == SOCKET_ERROR ) {
         // printf("listen failed with error: %d\n", WSAGetLastError());
-        closesocket(  internal::this_node.sock );
+        closesocket(  internal::ListenSocket );
         WSACleanup();
         return FAILED_LISTEN;
     }
@@ -94,7 +94,7 @@ int ReKat::online::Start
 }
 
 static int ReKat::online::Connect 
-( char * new_name, std::string address, const char * port ) {
+( std::string new_name, std::string address ) {
     internal::node_infos new_node;
 
     SOCKET ConnectSocket = INVALID_SOCKET;
@@ -109,7 +109,7 @@ static int ReKat::online::Connect
 
     // Resolve the server address and port
     int erroe;
-    if ( erroe = getaddrinfo(address.c_str(), port, &hints, &result) != 0 ) 
+    if ( erroe = getaddrinfo(address.c_str(), DPORT_W, &hints, &result) != 0 ) 
     { std::cout << "erroe: "<< WSAGetLastError() << '\n'; return FAILED_HOST_RESOLVE; }
 
     // Attempt to connect to an address until one succeeds
@@ -136,12 +136,7 @@ static int ReKat::online::Connect
     new_node.sock = ConnectSocket;
     new_node.internal_name = new_name;
 
-    // sending name
-    if ( internal::send_buf ( new_node, internal::this_node.internal_name, NAME_LEN, nullptr) == FAILED_SEND ) 
-    { closesocket(ConnectSocket); return FAILED_SEND; }
-
-    // sending id
-    if ( internal::send_buf ( new_node, (char*)&internal::this_node.internal_id, sizeof(size_t), nullptr) == FAILED_SEND ) 
+    if ( internal::send_buf ( new_node, internal::this_name, BUF_LEN, nullptr) == FAILED_SEND ) 
     { closesocket(ConnectSocket); return FAILED_SEND; }
 
     internal::node_network.insert( {new_name, new_node} );
@@ -150,14 +145,14 @@ static int ReKat::online::Connect
 }
 
 static int ReKat::online::Send 
-( const char* _buf, long size, char* node ) {
+( const char* _buf, long size, std::string node ) {
 	auto Timeout = timeval();
 	Timeout.tv_sec = DTIMEOUT;
 	return internal::send_buf ( internal::node_network[node], _buf, size, &Timeout );
 }
 
 static int ReKat::online::Recv 
-( char* _buf, long size, char* node ) {
+( char* _buf, long size, std::string node ) {
 	auto Timeout = timeval();
 	Timeout.tv_sec = DTIMEOUT;
 	return internal::recv_buf ( internal::node_network[node], _buf, size, &Timeout );
@@ -167,30 +162,31 @@ static int ReKat::online::New_Connection
 ( ) {
 	fd_set FD_Listen;
 	FD_ZERO ( &FD_Listen ); //Clearing the socket set
-	FD_SET  ( internal::this_node.sock, &FD_Listen ); //Adding the master socket to the set 
+	FD_SET  ( internal::ListenSocket, &FD_Listen ); //Adding the master socket to the set 
 
+	int max_sock = internal::ListenSocket;
+			
 	//Waiting for something to happen on the master socket.
-	int act = select( internal::this_node.sock + 1 , &FD_Listen , nullptr , nullptr , nullptr );
+	int act = select( 1 , &FD_Listen , nullptr , nullptr , nullptr /**/);
 
 	if ((act < 0) && (errno!=EINTR)) { return FAILED_SELECT; }
 
 	//Any activity on the master socket is treated as an incoming connection
-	if ( FD_ISSET( internal::this_node.sock, &FD_Listen ) ) {
+	if ( FD_ISSET( internal::ListenSocket, &FD_Listen ) ) {
         internal::node_infos new_node;
         
         // Accept a client socket
-		new_node.sock = accept( internal::this_node.sock, NULL, NULL );
+		new_node.sock = accept( internal::ListenSocket, NULL, NULL );
 
         if ( new_node.sock == INVALID_SOCKET ) 
         { return FAILED_CONNECTION; }
 
         // read name
-        if (internal::recv_buf (new_node, (char*)&new_node.internal_name, NAME_LEN, nullptr) == FAILED_RECV) 
+        char* _buf = (char*)calloc(BUF_LEN, sizeof(char));
+        if (internal::recv_buf (new_node, _buf, BUF_LEN, nullptr) == FAILED_RECV) 
         { closesocket(new_node.sock); return FAILED_CONNECTION; }
-        
-        // read id
-        if ( internal::send_buf ( new_node, (char*)&new_node.internal_id, sizeof(size_t), nullptr) == FAILED_SEND ) 
-        { closesocket(new_node.sock); return FAILED_CONNECTION; }
+
+        new_node.internal_name = _buf;
 
 	    internal::node_network.insert( { new_node.internal_name, new_node } );
 	}
@@ -257,36 +253,10 @@ static int ReKat::online::internal::recv_buf
 	return FAILED_RECV;
 }
 
-static int ReKat::online::Recv_all 
-( char* _buf, long size ) {
-    if ( internal::node_network.size() == 0 ) { return NOBODY_THERE; }
-
-	fd_set recive_sockets;
-	FD_ZERO ( &recive_sockets );
-    // add all sockets
-    SOCKET max = 0;
-    for ( auto sock : internal::node_network ) { 
-        if ( sock.second.sock > max ) { max = sock.second.sock; }
-        FD_SET( sock.second.sock, &recive_sockets ); 
-    }
-	
-    timeval wait_time = timeval();
-    wait_time.tv_sec = DTIMEOUT;
-	int act = select( max + 1, &recive_sockets, nullptr ,nullptr, &wait_time);
-
-	if (act < 0) { return TIMEOUT; }
-    // check every socket // the first pending get to read
-    for ( auto sock : internal::node_network ) {
-    if ( FD_ISSET ( sock.second.sock, &recive_sockets ) ) 
-    { return Recv ( _buf, size, sock.first ); } }
-
-	return FAILED_RECV;
-}
-
 static void ReKat::online::End 
 ( ) {
     // stop listeing
-    closesocket ( internal::this_node.sock );
+    closesocket ( internal::ListenSocket );
 
     // close sockets
     for ( auto sock : internal::node_network ) 
@@ -295,9 +265,9 @@ static void ReKat::online::End
 	WSACleanup();
 }
 
-static std::vector<char*> ReKat::online::Connected 
+static std::vector<std::string> ReKat::online::Connected 
 ( ) {
-    std::vector<char*> nodi;
+    std::vector<std::string> nodi;
     for ( auto node : internal::node_network ) { nodi.push_back(node.first); }
     return nodi;
 }
@@ -310,14 +280,5 @@ static int ReKat::online::CHECK
     std::cout << p.sock << '\n'; 
     
 std::cout << "check valid"; return 2; }
-
-char* ReKat::online::Format_String ( std::string string ) {
-    char* char_s = (char*) calloc (NAME_LEN, sizeof(char));
-
-    for (size_t i = 0; i < string.size() && i < NAME_LEN; i++) 
-    { char_s[i] = string[i]; }
-
-    return char_s;
-}
 
 #endif

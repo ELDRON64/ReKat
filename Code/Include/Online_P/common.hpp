@@ -13,9 +13,8 @@ namespace ReKat {
 namespace online {
 	#define DPORT 42069
 	#define DPORT_W "42069"
-	#define DTIMEOUT 5
-
-	#define NAME_LEN 32
+	#define DTIMEOUT 1
+	#define BUF_LEN 32
 	
 	enum Status {
 		SUCCESS,
@@ -31,30 +30,24 @@ namespace online {
 		FAILED_RECV,
 		ALREADY_CONNECTED,
 		DISCONNECTED,
-		TIMEOUT,
-		NOBODY_THERE
+		TIMEOUT
 	};
 
 	static int CHECK ( );
 	
-	// start a node with name and id with optional port
-	static int Start ( std::string name, size_t id, const char* port = DPORT_W );
+	static int Start ( std::string name, std::string port );
 
 	static int New_Connection ( );
 
-    static int Connect ( char* new_name, std::string address, const char * port = DPORT_W );
+    static int Connect ( std::string new_name, std::string address );
 
-	static int Send ( const char* _buf, long size, char* node );
+	static int Send ( const char* _buf, long size, std::string node );
 
-	static int Recv ( char* _buf, long size, char* node );
+	static int Recv ( char* _buf, long size, std::string node );
 
-	static int Recv_all ( char* _buf, long size );
-
-	static std::vector<char*> Connected ( );
+	static std::vector<std::string> Connected ( );
 
 	static void End ( );
-
-	char* Format_String ( std::string string );
 } /* Online */ } // ReKat
 
 #endif
