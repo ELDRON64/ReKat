@@ -1,5 +1,3 @@
-
-
 #include <iostream>
 #include <map>
 #include <string>
@@ -75,7 +73,7 @@ int main ( ) {
     
     // compile and setup the shader
     // ----------------------------
-    Shader shader("text.vs", "text.fs");
+    Shader shader("Shaders/text.vs", "Shaders/text.fs");
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
     shader.use();
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -91,7 +89,7 @@ int main ( ) {
     }
 
 	// find path to font
-    std::string font_name = "resources/fonts/Antonio-Bold.ttf";
+    std::string font_name = "Antonio-Bold.ttf";
     if (font_name.empty())
     {
         std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;

@@ -94,7 +94,7 @@ int ReKat::online::Start
 }
 
 static int ReKat::online::Connect 
-( std::string new_name, std::string address ) {
+( std::string new_name, std::string address, const char* port ) {
     internal::node_infos new_node;
 
     SOCKET ConnectSocket = INVALID_SOCKET;
@@ -109,7 +109,7 @@ static int ReKat::online::Connect
 
     // Resolve the server address and port
     int erroe;
-    if ( erroe = getaddrinfo(address.c_str(), DPORT_W, &hints, &result) != 0 ) 
+    if ( erroe = getaddrinfo(address.c_str(), port, &hints, &result) != 0 ) 
     { std::cout << "erroe: "<< WSAGetLastError() << '\n'; return FAILED_HOST_RESOLVE; }
 
     // Attempt to connect to an address until one succeeds
@@ -145,14 +145,41 @@ static int ReKat::online::Connect
 }
 
 static int ReKat::online::Send 
-( const char* _buf, long size, std::string node ) {
-	auto Timeout = timeval();
-	Timeout.tv_sec = DTIMEOUT;
-	return internal::send_buf ( internal::node_network[node], _buf, size, &Timeout );
+( const char* _buf, long size, std::string node, int time ) {
+    // format _buf into BUFLEN dimesion
+    long _n_buf = size / BUF_LEN + 1;
+    char** _buffs = (char**) calloc ( _n_buf, sizeof(char*) );
+    
+    // allocate memory
+    for ( size_t i = 0; i < _n_buf; i++ ) { _buffs[i] = (char*) calloc (BUF_LEN, sizeof(char)); }
+    std::cout << "memory allocated correctly\n";
+    // popolate memory
+    for ( size_t i = 0; i < size; i++ ) { 
+        std::cout << "poplating " << i << " " << _buf [i];
+        std::cout << " into " << i / BUF_LEN << ", " << i % BUF_LEN;
+        
+        _buffs[i / BUF_LEN] [i % BUF_LEN] = _buf [i]; 
+    }
+    std::cout << "memory popolated correctly\n";
+
+    // sending buffers
+    int res = SUCCESS;
+    for ( size_t i = 0; i < _n_buf; i++ ) {
+        if ( time < 0 ) { res = internal::send_buf ( internal::node_network[node], _buffs[i], BUF_LEN, nullptr ); } 
+        else {
+            auto Timeout = timeval();
+            Timeout.tv_sec = DTIMEOUT;
+            res = internal::send_buf ( internal::node_network[node], _buffs[i], BUF_LEN, &Timeout );
+        }
+        
+    }
+
+    return res;
 }
 
 static int ReKat::online::Recv 
-( char* _buf, long size, std::string node ) {
+( char* _buf, long size, std::string node, int time ) {
+    if ( time < 0 ) { return internal::recv_buf ( internal::node_network[node], _buf, size, nullptr ); }
 	auto Timeout = timeval();
 	Timeout.tv_sec = DTIMEOUT;
 	return internal::recv_buf ( internal::node_network[node], _buf, size, &Timeout );
@@ -214,7 +241,7 @@ static int ReKat::online::internal::send_buf
 			if (result > 0) { 
 				remaining -= result; sent += remaining; 
 			}
-			else if (result < 0) { std::cout << "\tsend errno: " << errno << '\n'; return FAILED_SEND; }
+			else if (result < 0) { return FAILED_SEND; } // std::cout << "\tsend errno: " << errno << '\n';
 		}
 				
 		return SUCCESS;
@@ -244,7 +271,7 @@ static int ReKat::online::internal::recv_buf
 				received += result;
 			}
 			else if (result == 0) { return DISCONNECTED; /*disconnection*/ }
-			else if (result  < 0) { std::cout << "\trecv errno: " << errno << '\n'; return FAILED_RECV; }
+			else if (result  < 0) { return FAILED_RECV; } // std::cout << "\trecv errno: " << errno << '\n';
 		}
 
 		return SUCCESS;

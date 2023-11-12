@@ -39,11 +39,11 @@ namespace online {
 
 	static int New_Connection ( );
 
-    static int Connect ( std::string new_name, std::string address );
+    static int Connect ( std::string new_name, std::string address, const char* port = DPORT_W );
 
-	static int Send ( const char* _buf, long size, std::string node );
+	static int Send ( const char* _buf, long size, std::string node, int time = DTIMEOUT );
 
-	static int Recv ( char* _buf, long size, std::string node );
+	static int Recv ( char* _buf, long size, std::string node, int time = DTIMEOUT );
 
 	static std::vector<std::string> Connected ( );
 
