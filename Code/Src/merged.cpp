@@ -15,8 +15,13 @@ using namespace ReKat;
 bool Main_shutdown = false;
 std::string msg_stream;
 
+std::vector < std::string > history;
+
 std::string input = "$ ";
 std::stringstream output;
+
+int start_line = 0;
+int total_lines = 0;
 
 int generate_id ( size_t hash ) {
     int D = time (0);
@@ -88,7 +93,7 @@ void Check_connections ( std::string out_path ) {
 
     // terminate nodes
     if ( node_threads.size() == 0 ) { return; }
-    for ( size_t i = 0; i < node_threads.size() - 1; i++ ) { TerminateThread ( node_threads[i].native_handle(), 1 ); }
+    for ( size_t i = 0; i < node_threads.size() - 1; i++ ) { TerminateThread ( node_threads[i].native_handle(), 1 ); node_threads[i].detach(); }
 
     output << "local nodes terminated\n";
 }
@@ -128,22 +133,24 @@ long long command ( std::string command ) {
         for( auto s : online::Connected () ) { output << "connected to: " << s << '\n'; } return SUCCESS;
     }
 
-    if ( tokens[0] == "get") {
+    if ( tokens[0] == "get" ) {
         output << msg_stream;
         msg_stream = "";
         return SUCCESS;
     }
 
+    if ( tokens[0] == "clear" ) { output.clear(); }
+
     output << "\n" << command << " is incorrect\n";
     return INCORRECT_COMMAND;
 }
-
 
 void execute_command ( ) {
     if (input == "$ exit") { Main_shutdown = true; grapik::End(); }
     int r = command ( input );
     output << "command result: " << std::to_string(r) << '\n';
     input = "$ ";
+    output << "lines: " << total_lines;
 }
 
 static void grapik::Input::Keyboard ( GLFWwindow* window, int key, int scancode, int action, int mode ) {
@@ -154,11 +161,17 @@ static void grapik::Input::Keyboard ( GLFWwindow* window, int key, int scancode,
         if ( key == GLFW_KEY_ENTER ) { execute_command (); return; }
         if ( key == GLFW_KEY_DELETE || key == GLFW_KEY_BACKSPACE ) { if ( input.size() > 0 ) { input.pop_back (); } return; }
         if ( key == GLFW_KEY_SPACE ) { input += " "; return; }
+        if ( key == GLFW_KEY_DOWN ) { start_line ++; return; }
+        if ( key == GLFW_KEY_UP ) { start_line --; return; }
+
         input += (char) key + 32;
     }
 }
 static void grapik::Input::Mouse ( GLFWwindow* window, double xpos, double ypos ) { }
-static void grapik::Input::ScrollWell ( GLFWwindow* window, double xoffset, double yoffset ) { }
+static void grapik::Input::ScrollWell ( GLFWwindow* window, double xoffset, double yoffset ) {
+    if ( yoffset >= 0 ) { start_line ++; }
+    if ( yoffset <= 0 ) { start_line --; }
+}
 static void grapik::Input::FreamBufferResize ( GLFWwindow* window, int width, int height ) { }
 
 /// Holds all state information relevant to a character as loaded using FreeType
@@ -175,15 +188,13 @@ unsigned int VAO, VBO;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-void RenderText(Shader &shader, std::string text, float init_x, float init_y, float scale, glm::vec3 color, float to_wrap, float wrap_h, int Max_Rows, int Start_Row )
+int RenderText(Shader &shader, std::string text, float init_x, float init_y, float scale, glm::vec3 color, float to_wrap, float wrap_h, int Max_Rows, int Start_Row )
 {
     // activate corresponding render state	
     shader.use();
     glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
-
-
 
     // iterate through all characters
     std::string::const_iterator c;
@@ -196,8 +207,7 @@ void RenderText(Shader &shader, std::string text, float init_x, float init_y, fl
         // new line check
         if ( *c == '\n' ) { y -= (scale * wrap_h ); x = init_x; continue; }
         // last line chiek
-        if ( y == last_y ) { break; }
-
+        if ( y <= last_y ) { goto text_wrapp_count; }
 
         Character ch = Characters[*c];
 
@@ -228,12 +238,14 @@ void RenderText(Shader &shader, std::string text, float init_x, float init_y, fl
         // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
         x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
         
+        text_wrapp_count:
         // text wrapping
         if ( x >= ( to_wrap + init_x ) ) { y -= (scale * wrap_h ); x = init_x; }
-        
     }
+    y -= init_y;
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+    return y / (scale *wrap_h) - Start_Row;
 }
 
 int main(int argc, char const *argv[]) {
@@ -361,10 +373,12 @@ int main(int argc, char const *argv[]) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // command out;
-        RenderText ( shader, output.str(), 25.0f, SCR_HEIGHT - 75.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), SCR_WIDTH - 50.0f, 50.0f, 7, 0 );
+        int _total_lines = RenderText ( shader, output.str(), 25.0f, SCR_HEIGHT - 75.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), SCR_WIDTH - 50.0f, 50.0f, 8, start_line );
+        total_lines = total_lines < _total_lines ? total_lines : _total_lines;
+        std::cout << " total_lines: " << total_lines;
 
         // command box
-        RenderText ( shader, input, 25.0f, 100.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f),SCR_WIDTH - 50.0f, 50.0f, 2, 0 );
+        RenderText ( shader, input, 25.0f, 100.0f, 0.75f, glm::vec3(0.3, 0.7f, 0.9f),SCR_WIDTH - 50.0f, 50.0f, 3, 0 );
 
         grapik::Pool();
     }
