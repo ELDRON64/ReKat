@@ -15,9 +15,9 @@ using namespace ReKat;
 bool Main_shutdown = false;
 std::string msg_stream;
 
+int current_command = 0;
 std::vector < std::string > history;
 
-std::string input = "$ ";
 std::stringstream output;
 
 int start_line = 0;
@@ -122,11 +122,13 @@ long long command ( std::string command ) {
     if ( tokens[0] == "connect" ) {
         if ( tokens.size ( ) == 3 ) { return online::Connect ( tokens[1], tokens[2] ); }
         if ( tokens.size ( ) == 4 ) { return online::Connect ( tokens[1], tokens[2], tokens[3].c_str( ) ); }
+        return FAULTY_COMMAND;
     }
 
     // args: node, msg
     if ( tokens[0] == "msg" ) {
         if ( tokens.size ( ) == 3 ) { return online::Send ( tokens[2].c_str(), tokens[2].size(), tokens[1] ); }
+        return FAULTY_COMMAND;
     }
 
     if ( tokens[0] == "connected" ) {
@@ -139,32 +141,52 @@ long long command ( std::string command ) {
         return SUCCESS;
     }
 
-    if ( tokens[0] == "clear" ) { output.clear(); }
+    if ( tokens[0] == "clear" ) { output.str(""); output << "ReKat\n"; return SUCCESS; }
 
-    output << "\n" << command << " is incorrect\n";
     return INCORRECT_COMMAND;
 }
 
 void execute_command ( ) {
-    if (input == "$ exit") { Main_shutdown = true; grapik::End(); }
-    int r = command ( input );
-    output << "command result: " << std::to_string(r) << '\n';
-    input = "$ ";
-    output << "lines: " << total_lines;
+    if (history[current_command] == "$ exit") { Main_shutdown = true; grapik::End(); }
+    int r = command ( history[current_command] );
+    if ( r != 0 ) {
+        output << "command error: ";
+        switch ( r ) {
+            case -1: output << "NO_COMMAND\n"; break;
+            case -2: output << "FAULTY_COMMAND\n"; break;
+            case -3: output << "INCORRECT_COMMAND\n"; break;
+        }
+    }
+    current_command = history.size ( ); 
+    history.push_back ("$ ");
 }
+
+bool ctrl = false;
+bool shift = false;
 
 static void grapik::Input::Keyboard ( GLFWwindow* window, int key, int scancode, int action, int mode ) {
     if ( key == GLFW_KEY_ESCAPE ) { grapik::End(); }
 
+    // shift
+    if ( key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT ) {
+        if ( action == GLFW_PRESS ) { shift = true; } 
+        else { shift = false; }
+    }
+    // ctrl
+    if ( key == GLFW_KEY_LEFT_CONTROL || key == GLFW_KEY_RIGHT_CONTROL ) {
+        if ( action == GLFW_PRESS ) { ctrl = true; } 
+        else { ctrl = false; }
+    }
+
     if ( ( action == GLFW_PRESS || action == GLFW_REPEAT ) ) {
         if ( key == GLFW_KEY_ESCAPE ) { grapik::End(); }
-        if ( key == GLFW_KEY_ENTER ) { execute_command (); return; }
-        if ( key == GLFW_KEY_DELETE || key == GLFW_KEY_BACKSPACE ) { if ( input.size() > 0 ) { input.pop_back (); } return; }
-        if ( key == GLFW_KEY_SPACE ) { input += " "; return; }
-        if ( key == GLFW_KEY_DOWN ) { start_line ++; return; }
-        if ( key == GLFW_KEY_UP ) { start_line --; return; }
-
-        input += (char) key + 32;
+        if ( key == GLFW_KEY_ENTER ) { execute_command ();  return; }
+        if ( key == GLFW_KEY_DELETE || key == GLFW_KEY_BACKSPACE ) 
+        { if ( history[current_command].size() > 2 ) { history[current_command].pop_back (); } return; }
+        if ( key == GLFW_KEY_DOWN ) 
+        { if ( current_command < history.size( ) - 1 ) { current_command ++; } return; }
+        if ( key == GLFW_KEY_UP ) 
+        { if ( current_command > 0) { current_command --; }  return; }
     }
 }
 static void grapik::Input::Mouse ( GLFWwindow* window, double xpos, double ypos ) { }
@@ -173,6 +195,9 @@ static void grapik::Input::ScrollWell ( GLFWwindow* window, double xoffset, doub
     if ( yoffset <= 0 ) { start_line --; }
 }
 static void grapik::Input::FreamBufferResize ( GLFWwindow* window, int width, int height ) { }
+static void grapik::Input::Caracters ( GLFWwindow* window, unsigned int codepoint ) {
+    history[current_command] += (char)(codepoint);
+}
 
 /// Holds all state information relevant to a character as loaded using FreeType
 struct Character {
@@ -202,60 +227,59 @@ int RenderText(Shader &shader, std::string text, float init_x, float init_y, flo
 
     y -= (scale * wrap_h ) * Start_Row;
     int last_y = init_y - (scale * wrap_h ) * Max_Rows;
+    int Rows = 0;
  
     for (c = text.begin(); c != text.end(); c++) {
         // new line check
-        if ( *c == '\n' ) { y -= (scale * wrap_h ); x = init_x; continue; }
+        if ( *c == '\n' ) { y -= (scale * wrap_h ); Rows++; x = init_x; continue; }
         // last line chiek
-        if ( y <= last_y ) { goto text_wrapp_count; }
+        if ( ! ( y <= last_y ) ) { 
+            Character ch = Characters[*c];
 
-        Character ch = Characters[*c];
+            float xpos = x + ch.Bearing.x * scale;
+            float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
 
-        float xpos = x + ch.Bearing.x * scale;
-        float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+            float w = ch.Size.x * scale;
+            float h = ch.Size.y * scale;
+            // update VBO for each character
+            float vertices[6][4] = {
+                { xpos,     ypos + h,   0.0f, 0.0f },            
+                { xpos,     ypos,       0.0f, 1.0f },
+                { xpos + w, ypos,       1.0f, 1.0f },
 
-        float w = ch.Size.x * scale;
-        float h = ch.Size.y * scale;
-        // update VBO for each character
-        float vertices[6][4] = {
-            { xpos,     ypos + h,   0.0f, 0.0f },            
-            { xpos,     ypos,       0.0f, 1.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
+                { xpos,     ypos + h,   0.0f, 0.0f },
+                { xpos + w, ypos,       1.0f, 1.0f },
+                { xpos + w, ypos + h,   1.0f, 0.0f }           
+            };
+            // render glyph texture over quad
+            glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+            // update content of VBO memory
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // be sure to use glBufferSubData and not glBufferData
 
-            { xpos,     ypos + h,   0.0f, 0.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
-            { xpos + w, ypos + h,   1.0f, 0.0f }           
-        };
-        // render glyph texture over quad
-        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-        // update content of VBO memory
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // be sure to use glBufferSubData and not glBufferData
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            // render quad
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+            x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+        }
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        // render quad
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
-        
-        text_wrapp_count:
         // text wrapping
-        if ( x >= ( to_wrap + init_x ) ) { y -= (scale * wrap_h ); x = init_x; }
+        if ( x >= ( to_wrap + init_x ) ) { y -= (scale * wrap_h ); Rows++; x = init_x; }
     }
-    y -= init_y;
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    return y / (scale *wrap_h) - Start_Row;
+    return Rows;
 }
 
 int main(int argc, char const *argv[]) {
     std::string name = "giovanni";
     std::string pass = "Gattone";
-    std::string port;
+    int port;
     std::cout << "port: "; std::cin >> port;
     output << "ReKat\n";
     
-    long long start_result = online::Start ( name, port ) << '\n';
+    long long start_result = online::Start ( name, 0, port ) << '\n';
     output << "start result: " << ( start_result == 0 ? "succes" : "failed: " + std::to_string ( start_result ) ) << '\n';
     
     std::hash <std::string> hasher;
@@ -368,17 +392,19 @@ int main(int argc, char const *argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    history.push_back ("$ ");
+
+    // main loop
     while ( !Main_shutdown && grapik::IsEnd( ) ) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // command out;
-        int _total_lines = RenderText ( shader, output.str(), 25.0f, SCR_HEIGHT - 75.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), SCR_WIDTH - 50.0f, 50.0f, 8, start_line );
-        total_lines = total_lines < _total_lines ? total_lines : _total_lines;
-        std::cout << " total_lines: " << total_lines;
+        total_lines = total_lines <= 8 ? 0 : total_lines - 8;
+        total_lines  = RenderText ( shader, output.str(), 25.0f, SCR_HEIGHT - 75.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), SCR_WIDTH - 50.0f, 50.0f, 8, start_line - total_lines );
 
         // command box
-        RenderText ( shader, input, 25.0f, 100.0f, 0.75f, glm::vec3(0.3, 0.7f, 0.9f),SCR_WIDTH - 50.0f, 50.0f, 3, 0 );
+        RenderText ( shader, history[current_command], 25.0f, 100.0f, 0.75f, glm::vec3(0.3, 0.7f, 0.9f),SCR_WIDTH - 50.0f, 50.0f, 3, 0 );
 
         grapik::Pool();
     }

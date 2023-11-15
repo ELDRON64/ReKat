@@ -41,7 +41,7 @@ namespace online {
 } /* Online */ } // ReKat
 
 int ReKat::online::Start 
-( std::string name, std::string port ) {
+( std::string name, size_t ID, int port ) {
     internal::this_name = (char*)calloc(BUF_LEN,sizeof(char));
     for (size_t i = 0; i < name.size(); i++) { internal::this_name[i] = name[i]; }
 
@@ -59,7 +59,7 @@ int ReKat::online::Start
     hints.ai_flags = AI_PASSIVE;
 
     // Resolve the server address and port
-    if ( getaddrinfo(NULL, port.c_str(), &hints, &result) != 0 ) 
+    if ( getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &result) != 0 ) 
     { WSACleanup(); return FAILED_HOST_RESOLVE; }
 
     // Create a SOCKET for the server to listen for client connections.
@@ -306,6 +306,6 @@ static int ReKat::online::CHECK
     std::cout << &p << '\n';
     std::cout << p.sock << '\n'; 
     
-std::cout << "check valid"; return 2; }
+std::cout << "check valid"; return SUCCESS; }
 
 #endif

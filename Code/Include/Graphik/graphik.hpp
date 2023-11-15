@@ -154,6 +154,7 @@ namespace Input {
     static void Mouse ( GLFWwindow* window, double xpos, double ypos );
     static void ScrollWell ( GLFWwindow* window, double xoffset, double yoffset );
     static void FreamBufferResize ( GLFWwindow* window, int width, int height );
+    static void Caracters ( GLFWwindow* window, unsigned int codepoint );
 } /*Input*/
 
     // Basic Grapik functions
@@ -204,6 +205,7 @@ namespace ReKat::grapik {
         glfwSetCursorPosCallback ( Internal::window, Input::Mouse );
         glfwSetScrollCallback ( Internal::window, Input::ScrollWell );
         glfwSetFramebufferSizeCallback ( Internal::window, Input::FreamBufferResize );
+        glfwSetCharCallback( Internal::window, Input::Caracters );
 
         // glad: load all OpenGL function pointers
         // ---------------------------------------

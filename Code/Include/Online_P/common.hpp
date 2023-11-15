@@ -33,18 +33,33 @@ namespace online {
 		TIMEOUT
 	};
 
+	/// @brief Check if the librarys are linked correctly
+	/// Twrows if errors occurred
 	static int CHECK ( );
 	
-	static int Start ( std::string name, std::string port );
+	/// @brief Start a node with name and id
+	/// @param name the name of the node max BUF_LEN as lenth
+	/// @param ID the unique ID if the node (possibly HASH"name_password")
+	/// @param port between 1024 and 65.535
+	static int Start ( std::string name, size_t ID , int port );
 
+	/// @brief Accepts a new connection and adds the transmitted node_name to the Node_Network
 	static int New_Connection ( );
 
+    /// @brief Connects this node to the specified node and names it new_name (the original name, ID are stored in the internal infos) 
     static int Connect ( std::string new_name, std::string address, const char* port = DPORT_W );
 
+	/// @brief Sends _buf of lenth size from node and waits time seconds (if time < 0 wait indeterminatly). Sends single buffers of BUF_LEN
 	static int Send ( const char* _buf, long size, std::string node, int time = DTIMEOUT );
 
+	/// @brief Recives _buf of lenth size from node and waits time seconds (if time < 0 wait indeterminatly) 
 	static int Recv ( char* _buf, long size, std::string node, int time = DTIMEOUT );
 
+	/// @brief Verifies that the currently marked as connected nodes are still connected the removes the disconnected ones
+	/// @return 
+	static int Refresh ( );
+
+	/// @brief Get the name of every entry of the Node_Network (even the disconnected) to prevent this us Refresh before calling
 	static std::vector<std::string> Connected ( );
 
 	static void End ( );
