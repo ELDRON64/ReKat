@@ -50,13 +50,15 @@ namespace online {
     static int Connect ( std::string new_name, std::string address, const char* port = DPORT_W );
 
 	/// @brief Sends _buf of lenth size from node and waits time seconds (if time < 0 wait indeterminatly). Sends single buffers of BUF_LEN
-	static int Send ( const char* _buf, long size, std::string node, int time = DTIMEOUT );
+	static int Send ( const char* _buf, size_t size, std::string node, int time = DTIMEOUT );
 
-	/// @brief Recives _buf of lenth size from node and waits time seconds (if time < 0 wait indeterminatly) 
-	static int Recv ( char* _buf, long size, std::string node, int time = DTIMEOUT );
+	/// @brief Retrurn the rescived _buf sent from a Send call and sets *size to its lenth
+	static char * Recv ( std::string node, int *exit_status, size_t *size = nullptr, int time = DTIMEOUT );
+
+	/// @brief disconnects the node
+	static int Close_sock ( std::string node );
 
 	/// @brief Verifies that the currently marked as connected nodes are still connected the removes the disconnected ones
-	/// @return 
 	static int Refresh ( );
 
 	/// @brief Get the name of every entry of the Node_Network (even the disconnected) to prevent this us Refresh before calling

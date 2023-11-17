@@ -21,6 +21,9 @@
 
 #ifdef OPENGL
 	#include <Graphik/graphik.hpp>
+	#include <Graphik/text.hpp>
+	#include <Graphik/model.h>
+	#include <Graphik/camera.h>
 #endif
 
 #ifdef OPENAL

@@ -33,8 +33,8 @@ namespace online {
         std::unordered_map < std::string, node_infos > node_network;
         static WSADATA wsaData;
 		
-        static int send_buf ( node_infos sock, const char *buf, size_t sizeof_buf, timeval * wait_time );
-		static int recv_buf ( node_infos sock, char *buf, size_t sizeof_buf, timeval * wait_time );
+        static int send_buf ( node_infos sock, const char *buf, size_t sizeof_buf, int *time );
+		static int recv_buf ( node_infos sock, char *buf, size_t sizeof_buf, int *time );
 	} // private variables
 } /* Online */ } // ReKat
 
@@ -152,40 +152,6 @@ static int ReKat::online::Connect
 	return SUCCESS;
 }
 
-static int ReKat::online::Send 
-( const char* _buf, long size, std::string node, int time ) {
-    // format _buf into BUFLEN dimesion
-    long _n_buf = size / BUF_LEN + 1;
-    char** _buffs = (char**) calloc ( _n_buf, sizeof(char*) );
-    
-    // allocate memory
-    for ( size_t i = 0; i < _n_buf; i++ ) { _buffs[i] = (char*) calloc (BUF_LEN, sizeof(char)); }
-    // popolate memory
-    for ( size_t i = 0; i < size; i++ ) { _buffs[i / BUF_LEN] [i % BUF_LEN] = _buf [i]; }
-
-    // sending buffers
-    int res = SUCCESS;
-    for ( size_t i = 0; i < _n_buf; i++ ) {
-        if ( time < 0 ) { res = internal::send_buf ( internal::node_network[node], _buffs[i], BUF_LEN, nullptr ); } 
-        else {
-            auto Timeout = timeval();
-            Timeout.tv_sec = DTIMEOUT;
-            res = internal::send_buf ( internal::node_network[node], _buffs[i], BUF_LEN, &Timeout );
-        }
-        
-    }
-
-    return res;
-}
-
-static int ReKat::online::Recv 
-( char* _buf, long size, std::string node, int time ) {
-    if ( time < 0 ) { return internal::recv_buf ( internal::node_network[node], _buf, size, nullptr ); }
-	auto Timeout = timeval();
-	Timeout.tv_sec = DTIMEOUT;
-	return internal::recv_buf ( internal::node_network[node], _buf, size, &Timeout );
-}
-
 static int ReKat::online::New_Connection 
 ( ) {
 	fd_set FD_Listen;
@@ -208,6 +174,8 @@ static int ReKat::online::New_Connection
         if ( new_node.sock == INVALID_SOCKET ) 
         { return FAILED_CONNECTION; }
 
+        std::cout <<  "connecting\n";
+
         // get infos
         new_node.internal_name = (char*) calloc (BUF_LEN,sizeof(char));
         if ( internal::recv_buf ( new_node, new_node.internal_name, BUF_LEN, nullptr) == FAILED_RECV ) 
@@ -227,13 +195,56 @@ static int ReKat::online::New_Connection
     return SUCCESS;
 }
 
+static int ReKat::online::Send 
+( const char* _buf, size_t size, std::string node, int time ) {
+    int *time_p = &time;
+    if ( time < 0 ) { time_p = nullptr; }
+    
+    int result = 0;
+
+    // send size
+    result = internal::send_buf ( internal::node_network[node], (char*)&size, sizeof(size_t), time_p );
+    if ( result != SUCCESS ) { return result; }
+
+    // send _buf
+    return internal::send_buf ( internal::node_network[node], _buf, size, time_p );
+}
+
+static char* ReKat::online::Recv 
+(  std::string node, int *exit_status, size_t *size, int time ) {
+    int *time_p = &time;
+    if ( time < 0 ) { time_p = nullptr; }
+    
+    size_t new_size = 0;
+    char * _buf;
+
+    int result = 0;
+
+    result = internal::recv_buf ( internal::node_network[node], (char*)&new_size, sizeof(size_t), time_p );
+    if ( result != SUCCESS ) { (*exit_status) = result; return nullptr; }
+
+    _buf = (char*) calloc ( new_size + 1, sizeof(char));
+    result = internal::recv_buf ( internal::node_network[node], _buf, new_size, time_p ); 
+    if ( result != SUCCESS ) { (*exit_status) = result; return nullptr; }
+
+    if ( size != nullptr ) { (*size) = new_size; }
+    (*exit_status) = SUCCESS;
+    return _buf;
+}
+
 static int ReKat::online::internal::send_buf 
-( node_infos sock, const char *buf, size_t sizeof_buf, timeval *wait_time ) {
+( node_infos sock, const char *buf, size_t sizeof_buf, int *time ) {
 	fd_set sending_sock;
 	FD_ZERO(&sending_sock);
 	FD_SET(sock.sock, &sending_sock);
 		
-	int act = select(sock.sock + 1, nullptr, &sending_sock ,nullptr, wait_time);
+	int act;
+    if ( time == nullptr ) 
+    { act = select ( sock.sock + 1, nullptr, &sending_sock ,nullptr, nullptr ); } else {
+		timeval wait_time = timeval();
+		wait_time.tv_sec = *time;
+		act = select ( sock.sock + 1, nullptr, &sending_sock ,nullptr, &wait_time );
+	}
 
 	if (act < 0) { return TIMEOUT; }
 	if (FD_ISSET(sock.sock, &sending_sock)) {
@@ -257,12 +268,18 @@ static int ReKat::online::internal::send_buf
 }
 
 static int ReKat::online::internal::recv_buf 
-( node_infos sock, char *buf, size_t sizeof_buf, timeval * wait_time ) {
+( node_infos sock, char *buf, size_t sizeof_buf, int *time ) {
 	fd_set recive_sock;
 	FD_ZERO(&recive_sock);
 	FD_SET(sock.sock, &recive_sock);
-			
-	int act = select(sock.sock + 1, &recive_sock, nullptr ,nullptr, wait_time);
+	
+	int act;
+    if ( time == nullptr ) 
+    { act = select ( sock.sock + 1, &recive_sock, nullptr ,nullptr, nullptr ); } else {
+		timeval wait_time = timeval();
+		wait_time.tv_sec = *time;
+		act = select ( sock.sock + 1, &recive_sock, nullptr ,nullptr, &wait_time );
+	}
 
 	if (act < 0) { return TIMEOUT; }
 	if (FD_ISSET(sock.sock, &recive_sock)) {
@@ -313,6 +330,12 @@ static int ReKat::online::CHECK
     std::cout << p.sock << '\n'; 
     
 std::cout << "check valid"; return SUCCESS; }
+
+static int ReKat::online::Close_sock ( std::string node ) {
+	closesocket ( internal::node_network[node].sock );
+	internal::node_network.erase ( node );
+	return SUCCESS;
+}
 
 static int ReKat::online::Refresh 
 ( ) {
