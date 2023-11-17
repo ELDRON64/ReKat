@@ -17,3 +17,6 @@
 [submodule "Code/Libs/freetype"]
 	path = Code/Libs/freetype
 	url = https://github.com/freetype/freetype.git
+[submodule "Code/Libs/openal-soft"]
+	path = Code/Libs/openal-soft
+	url = https://github.com/kcat/openal-soft
