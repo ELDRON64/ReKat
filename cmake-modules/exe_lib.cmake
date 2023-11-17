@@ -1,48 +1,15 @@
 project(ReKat)
 
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
-add_subdirectory(Code/Libs/glfw)
-
-option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-option(ASSIMP_BUILD_SAMPLES OFF)
-option(ASSIMP_BUILD_TESTS OFF)
-add_subdirectory(Code/Libs/assimp)
-
-add_subdirectory(Code/Libs/freetype)
-
-option(ALSOFT_BUILD_IMPORT_LIB ON)
-option(ALSOFT_UTILS FALSE)
-option(ALSOFT_EXAMPLES OFF)
-add_subdirectory(Code/Libs/openal-soft)
-
-
-
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /std:c++17")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++17")
-    if(NOT WIN32)
-        set(GLAD_LIBRARIES dl)
-    else()
-        set(WINSOCK_LIBRARIES Ws2_32.lib Mswsock.lib AdvApi32.lib)
-    endif()
 endif()
-
-include_directories(Code/Include/
-                    Code/Libs/assimp/include/
-                    Code/Libs/glad/include/
-                    Code/Libs/freetype/include/
-                    Code/Libs/glfw/include/
-                    Code/Libs/openal-soft/include/
-                    Code/Libs/glm/
-                    Code/Libs/stb/ )
 
 file(GLOB LIBS_SOURCES    Code/Libs/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Code/Include/*.hpp
                           Code/Inlcude/*.h)
-# file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
+file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           # Code/Test/TestSock_Win/client.cpp
                           # Code/Test/TestSock_Win/server.cpp
                           # Code/Test/node_network/*.cpp
@@ -55,8 +22,8 @@ file(GLOB PROJECT_HEADERS Code/Include/*.hpp
                           # Code/Test/*.cpp
                           # Code/Src/grapik.cpp
                           # Code/Src/node.cpp
-                          # Code/Src/merged.cpp
-                          # Code/Include/*.cpp )
+                          Code/Src/merged.cpp
+                          Code/Include/*.cpp )
 file(GLOB PROJECT_SHADERS Code/Resources/Shaders/*.cs
                           Code/Resources/Shaders/*.fs
                           Code/Resources/Shaders/*.gs
@@ -88,6 +55,8 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
     # cruft, skipping those. The Windows registry used by the vanilla
     # FindOpenAL doesn't seem to be set anymore either.
     # # REQUIRED HINTS "c:/Users/cicciogamer/Documents/ReKat/openAl" )
+
+add_library(ReKatd ReKat.dll)
 
 target_link_libraries(${PROJECT_NAME} assimp glfw freetype 
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} ${OPENAL_LIBRARY} )

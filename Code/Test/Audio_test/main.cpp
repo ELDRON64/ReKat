@@ -21,14 +21,14 @@ static void list_audio_devices(const ALCchar *devices)
 
 int main( ) {
     std::cout << "start\n";
-/*    ALCdevice *device;
+    ALCdevice *device;
 
     device = alcOpenDevice(NULL);
-    if (!device) {}
+    if (!device) { std::cout << "cant start\n"; return 0;}
 
     bool E = alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT");
     if (E == AL_FALSE) { } 
-    else { list_audio_devices(alcGetString(NULL, ALC_DEVICE_SPECIFIER)); }*/
+    else { list_audio_devices(alcGetString(NULL, ALC_DEVICE_SPECIFIER)); }
         
     std::cout << "end\n";
     return 0;

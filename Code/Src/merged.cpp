@@ -420,7 +420,7 @@ int main ( int argc, char const *argv[] ) {
             { history[1].erase(0,2); pass = history [1]; }
         }
         else if ( ! ( port == 0 || ( 1024 <= port && port <= 65535 )) ) {
-            output.str("Node port\nInsert port:"); if ( history.size() > 3 ) {
+            output.str("Node port\nInsert port: ( 0 for "+ std::to_string(DPORT) +" )"); if ( history.size() > 3 ) {
                 // remover "$ "
                 history[2].erase(0,2);
                 port = stoi ( history[2] );
@@ -453,7 +453,7 @@ int main ( int argc, char const *argv[] ) {
     // getting ID
     size_t ID;
     std::string path = setup ( name, pass, &ID );
-    output << "\npath: " << path << "\nID: " << ID << '\n';
+    output << "path: " << path << "\nID: " << ID << '\n';
     
     // starting ONLINE
     long long start_result = online::Start ( name, 0, port ) << '\n';
@@ -467,8 +467,8 @@ int main ( int argc, char const *argv[] ) {
     recv_thread = std::thread ( Check_connections );
 
     // random bg color 
-    srand (ID);
-    float BGR = 0.5 + ((float)(rand()%256))/512.0f, BGG = 0.5 + ((float)(rand()%256))/512.0f, BGB = 0.5 + ((float)(rand()%256))/512.0f;
+    srand ( (int)ID);
+    float BGR = 0.5f + ((float)(rand()%256))/512.0f, BGG = 0.5f + ((float)(rand()%256))/512.0f, BGB = 0.5f + ((float)(rand()%256))/512.0f;
     std::cout << "BGR: " << BGR << '\n';
     std::cout << "BGB: " << BGB << '\n';
     std::cout << "BGG: " << BGG << '\n';

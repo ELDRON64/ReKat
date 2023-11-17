@@ -13,7 +13,7 @@ file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           # Code/Test/*.cpp
                           # Code/Src/grapik.cpp
                           # Code/Src/node.cpp
-                          # Code/Src/merged.cpp
-                          Code/Test/Audio_test/main.cpp
+                          Code/Src/merged.cpp
+                          # Code/Test/Audio_test/main.cpp
                           Code/Include/*.cpp )
 include( "cmake-modules/executable.cmake" )
