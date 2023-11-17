@@ -286,7 +286,6 @@ namespace ReKat::grapik::Resource_Manager::Resource {
     void texture::Bind ( ) 
     { glBindTexture(GL_TEXTURE_2D, this->ID); }
 
-
     int shader::Make ( const char* vertexPath, const char* fragmentPath, const char* geometryPath, const char* tessControlPath, const char* tessEvalPath ) {
         // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;

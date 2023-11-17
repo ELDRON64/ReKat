@@ -23,6 +23,11 @@
 	#include <Graphik/graphik.hpp>
 #endif
 
+#ifdef OPENAL
+	#include <AL/al.h>
+	#include <AL/alc.h>
+#endif
+
 
 
 #endif

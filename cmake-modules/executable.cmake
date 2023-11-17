@@ -12,6 +12,11 @@ add_subdirectory(Code/Libs/assimp)
 
 add_subdirectory(Code/Libs/freetype)
 
+option(ALSOFT_BUILD_IMPORT_LIB ON)
+option(ALSOFT_UTILS OFF)
+option(ALSOFT_EXAMPLES OFF)
+add_subdirectory(Code/Libs/openal-soft)
+
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /std:c++17")
 else()
@@ -28,13 +33,14 @@ include_directories(Code/Include/
                     Code/Libs/glad/include/
                     Code/Libs/freetype/include/
                     Code/Libs/glfw/include/
+                    Code/Libs/openal-soft/include/
                     Code/Libs/glm/
-                    Code/Libs/stb/)
+                    Code/Libs/stb/ )
 
 file(GLOB LIBS_SOURCES    Code/Libs/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Code/Include/*.hpp
                           Code/Inlcude/*.h)
-file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
+# file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           # Code/Test/TestSock_Win/client.cpp
                           # Code/Test/TestSock_Win/server.cpp
                           # Code/Test/node_network/*.cpp
@@ -47,8 +53,8 @@ file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           # Code/Test/*.cpp
                           # Code/Src/grapik.cpp
                           # Code/Src/node.cpp
-                          Code/Src/merged.cpp
-                          Code/Include/*.cpp )
+                          # Code/Src/merged.cpp
+                          # Code/Include/*.cpp )
 file(GLOB PROJECT_SHADERS Code/Resources/Shaders/*.cs
                           Code/Resources/Shaders/*.fs
                           Code/Resources/Shaders/*.gs
@@ -70,8 +76,10 @@ add_definitions(-DGLFW_INCLUDE_NONE
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${LIBS_SOURCES})
-target_link_libraries(${PROJECT_NAME} assimp glfw freetype
+
+target_link_libraries(${PROJECT_NAME} assimp glfw freetype OpenAL32
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} )
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 

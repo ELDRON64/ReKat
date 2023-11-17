@@ -1,4 +1,5 @@
 #define OPENGL
+#define OPENAL
 #define ONLINE_PEER
 #include <ReKat.hpp>
 using namespace ReKat;
@@ -13,7 +14,7 @@ using namespace ReKat;
 #include <filesystem>
 
 bool Main_shutdown = false;
-std::string msg_stream;
+std::string Begin_string = "ReKat: ";
 
 int current_command = 0;
 std::vector < std::string > history;
@@ -26,7 +27,7 @@ int total_lines = 0;
 int generate_id ( size_t hash ) {
     int D = time (0);
     std::hash <size_t> hasher;
-    return hasher( hash + hasher (D) );
+    return hasher ( D + hash );
 }
 
 // file saved for every user/password
@@ -41,12 +42,25 @@ enum Status {
     PATH_EXISTS
 };
 
-std::string setup ( size_t path_hash ) {
+std::string setup ( std::string name, std::string pass, size_t * ID ) {
+    std::hash <std::string> hasher;
+    size_t path_hash      = hasher ( name + pass );
+    size_t generator_hash = hasher ( name + "_" + pass );
+
     std::string path = std::to_string ( path_hash );
 
-    if ( std::filesystem::exists ( path ) ) { return path; }
+    if ( std::filesystem::exists ( path ) ) { 
+        // read ID from file
+        std::ifstream ID_file(path+"/ID");
+        ID_file.read((char*)ID, sizeof(size_t));
+        return path; 
+    }
 
     std::filesystem::create_directory ( path );
+    // create ID file
+    *ID = generate_id ( path_hash );
+    std::ofstream ID_file(path+"/ID");
+    ID_file.write((char*)ID,sizeof(size_t));
 
     return path;
 }
@@ -71,12 +85,12 @@ void Recive ( std::string node ) {
         // constanly read 
         _buf = (char*) calloc ( BUF_LEN + 1, sizeof(char) ); 
         status = online::Recv ( _buf, BUF_LEN, node, -1 );
-        output << "message from " + node + ": " + std::string(_buf) + '\n';
         if ( status == online::FAILED_RECV ) { return; }
+        output << "message from " + node + ": " + std::string(_buf) + '\n';
     }
 }
 
-void Check_connections ( std::string out_path ) {
+void Check_connections ( ) {
     std::vector < std::thread > node_threads;
     std::vector < std::string > nodes = online::Connected();
     std::string node_name;
@@ -93,7 +107,9 @@ void Check_connections ( std::string out_path ) {
 
     // terminate nodes
     if ( node_threads.size() == 0 ) { return; }
-    for ( size_t i = 0; i < node_threads.size() - 1; i++ ) { TerminateThread ( node_threads[i].native_handle(), 1 ); node_threads[i].detach(); }
+    for ( size_t i = 0; i < node_threads.size() - 1; i++ ) 
+    {   if (node_threads[i].joinable()) 
+        { TerminateThread ( node_threads[i].native_handle(), 1 ); node_threads[i].detach();} }
 
     output << "local nodes terminated\n";
 }
@@ -127,7 +143,15 @@ long long command ( std::string command ) {
 
     // args: node, msg
     if ( tokens[0] == "msg" ) {
-        if ( tokens.size ( ) == 3 ) { return online::Send ( tokens[2].c_str(), tokens[2].size(), tokens[1] ); }
+        if ( tokens.size ( ) >= 3 ) {
+            // check if connected to node
+            bool C = false;
+            for ( std::string s : online::Connected ( ) ) { if ( s == tokens[1] ) { C = true; } }
+            if ( C == false ) { output << tokens[1] << " is not connected\n"; return SUCCESS; }
+            std::string R = "";
+            for (size_t i = 2; i < tokens.size(); i++) { R += " " + tokens[i]; }
+            return online::Send ( R.c_str(), R.size(), tokens[1] ); 
+        }
         return FAULTY_COMMAND;
     }
 
@@ -135,34 +159,34 @@ long long command ( std::string command ) {
         for( auto s : online::Connected () ) { output << "connected to: " << s << '\n'; } return SUCCESS;
     }
 
-    if ( tokens[0] == "get" ) {
-        output << msg_stream;
-        msg_stream = "";
-        return SUCCESS;
-    }
+    if ( tokens[0] == "clear" ) { output.str(""); output << Begin_string; return SUCCESS; }
 
-    if ( tokens[0] == "clear" ) { output.str(""); output << "ReKat\n"; return SUCCESS; }
+    if ( tokens[0] == "refresh" ) { return online::Refresh(); }
 
     return INCORRECT_COMMAND;
 }
 
 void execute_command ( ) {
     if (history[current_command] == "$ exit") { Main_shutdown = true; grapik::End(); }
+    // output << '\n' << name << "@localhost: " << history[current_command] << '\n'; 
     int r = command ( history[current_command] );
     if ( r != 0 ) {
-        output << "command error: ";
         switch ( r ) {
             case -1: output << "NO_COMMAND\n"; break;
             case -2: output << "FAULTY_COMMAND\n"; break;
             case -3: output << "INCORRECT_COMMAND\n"; break;
         }
     }
-    current_command = history.size ( ); 
+    current_command = history.size ( );
+    if ( history[history.size()-1] == "$ " ) { current_command--; return; }
     history.push_back ("$ ");
 }
 
 bool ctrl = false;
 bool shift = false;
+
+unsigned int SCR_WIDTH = 800;
+unsigned int SCR_HEIGHT = 600;
 
 static void grapik::Input::Keyboard ( GLFWwindow* window, int key, int scancode, int action, int mode ) {
     if ( key == GLFW_KEY_ESCAPE ) { grapik::End(); }
@@ -194,7 +218,9 @@ static void grapik::Input::ScrollWell ( GLFWwindow* window, double xoffset, doub
     if ( yoffset >= 0 ) { start_line ++; }
     if ( yoffset <= 0 ) { start_line --; }
 }
-static void grapik::Input::FreamBufferResize ( GLFWwindow* window, int width, int height ) { }
+static void grapik::Input::FreamBufferResize ( GLFWwindow* window, int width, int height ) {
+    glViewport ( 0, 0, SCR_WIDTH = width, SCR_HEIGHT = height );
+}
 static void grapik::Input::Caracters ( GLFWwindow* window, unsigned int codepoint ) {
     history[current_command] += (char)(codepoint);
 }
@@ -210,8 +236,6 @@ struct Character {
 std::map<GLchar, Character> Characters;
 unsigned int VAO, VBO;
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
 
 int RenderText(Shader &shader, std::string text, float init_x, float init_y, float scale, glm::vec3 color, float to_wrap, float wrap_h, int Max_Rows, int Start_Row )
 {
@@ -272,62 +296,20 @@ int RenderText(Shader &shader, std::string text, float init_x, float init_y, flo
     return Rows;
 }
 
-int main(int argc, char const *argv[]) {
-    std::string name = "giovanni";
-    std::string pass = "Gattone";
-    int port;
-    std::cout << "port: "; std::cin >> port;
-    output << "ReKat\n";
-    
-    long long start_result = online::Start ( name, 0, port ) << '\n';
-    output << "start result: " << ( start_result == 0 ? "succes" : "failed: " + std::to_string ( start_result ) ) << '\n';
-    
-    std::hash <std::string> hasher;
-    size_t path_hash      = hasher ( name + pass );
-    size_t generator_hash = hasher ( name + "_" + pass );
-    size_t id = generate_id ( path_hash );
-    std::string path = setup ( path_hash + id );
-    output << "setup path: " << path << '\n';
-    output << "id: " << id << '\n';
-
-    // start new_conection node
-    std::thread conn_thread;
-    conn_thread = std::thread ( Connections );
-
-    std::thread recv_thread;
-    recv_thread = std::thread ( Check_connections, path );
-
-    grapik::Start ( "ReKat Kave", SCR_WIDTH, SCR_HEIGHT );
-
-    Shader shader("Shaders/text.vs", "Shaders/text.fs");
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
-    shader.use();
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
+int configure_freetype ( std::string font ) {
     // FreeType
     // --------
     FT_Library ft;
     // All functions return a value different than 0 whenever an error occurred
-    if (FT_Init_FreeType(&ft))
-    {
-        output << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
-        return -1;
-    }
+    if ( FT_Init_FreeType ( &ft ) ) 
+    { output << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl; return online::FAILURE; }
 
 	// find path to font
-    std::string font_name = "Antonio-Bold.ttf";
-    if (font_name.empty())
-    {
-        output << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
-        return -1;
-    }
+    if ( font.empty ( ) ) { output << "ERROR::FREETYPE: Failed to load font" << std::endl; return online::FAILURE; }
 	
 	// load font as face
     FT_Face face;
-    if (FT_New_Face(ft, font_name.c_str(), 0, &face)) {
-        output << "ERROR::FREETYPE: Failed to load font" << std::endl;
-        return -1;
-    }
+    if ( FT_New_Face ( ft, font.c_str(), 0, &face ) ) { output << "ERROR::FREETYPE: Failed to load font" << std::endl; return online::FAILURE; }
     else {
         // set size to load glyphs as
         FT_Set_Pixel_Sizes(face, 0, 48);
@@ -392,19 +374,119 @@ int main(int argc, char const *argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    return SUCCESS;
+}
+
+int main ( int argc, char const *argv[] ) {
+    // login infos
+    std::string name = "";
+    std::string pass = "";
+    int port = -1;
+
+    // get infos from GUI
+    // starting GRAPIK
+    grapik::Start ( "ReKat Kave", SCR_WIDTH, SCR_HEIGHT, false, false );
+    grapik::SetIcon ( "favicon.png" );
+
+    Shader shader("Shaders/text.vs", "Shaders/text.fs");
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
+    shader.use();
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    if ( configure_freetype ( "death_record.ttf" ) != SUCCESS ) { return 1; }
+
     history.push_back ("$ ");
 
-    // main loop
-    while ( !Main_shutdown && grapik::IsEnd( ) ) {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    // info loop
+    bool Infos_get = false;
+    while ( grapik::IsEnd( ) && !Infos_get ) {
+        // when a new command is added (\n pressed) get the last command as parameter        
+        glClearColor(0.09412f, 0.5451f, 0.74118f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // command out;
-        total_lines = total_lines <= 8 ? 0 : total_lines - 8;
-        total_lines  = RenderText ( shader, output.str(), 25.0f, SCR_HEIGHT - 75.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), SCR_WIDTH - 50.0f, 50.0f, 8, start_line - total_lines );
+        RenderText ( shader, output.str(), 25.0f, SCR_HEIGHT - 75.0f, 1.0f, glm::vec3(0.21875f, 0, 0.21875f), SCR_WIDTH - 50.0f, 50.0f, 8, 0 );
 
         // command box
         RenderText ( shader, history[current_command], 25.0f, 100.0f, 0.75f, glm::vec3(0.3, 0.7f, 0.9f),SCR_WIDTH - 50.0f, 50.0f, 3, 0 );
+
+        grapik::Pool();
+        if ( name == "") {
+            output.str("Login\nInsert name: "); if ( history.size() > 1 ) 
+            { history[0].erase(0,2); name = history [0]; }
+        }
+        else if ( pass == "" ) { 
+            output.str("Login\nInsert password:"); if ( history.size() > 2 ) 
+            { history[1].erase(0,2); pass = history [1]; }
+        }
+        else if ( ! ( port == 0 || ( 1024 <= port && port <= 65535 )) ) {
+            output.str("Node port\nInsert port:"); if ( history.size() > 3 ) {
+                // remover "$ "
+                history[2].erase(0,2);
+                port = stoi ( history[2] );
+                history.pop_back ();
+                current_command--;
+                Infos_get = true;
+                if ( port == 0 ) { port = DPORT; }
+            }
+        }
+    }
+
+    if ( Infos_get == false ) {
+        std::cout << "cannot get infos\n";
+        return online::FAILURE;
+    }
+
+    std::cout << "INFOS GET";
+    std::cout << "\nname: " << name;
+    std::cout << "\npass: " << pass;
+    std::cout << "\nport: " << port << '\n';
+    
+    output.str ("");
+    history.clear ( );
+    history.push_back ( "$ " );
+    current_command = 0;
+
+    Begin_string += name + '\n';
+    output << Begin_string;
+
+    // getting ID
+    size_t ID;
+    std::string path = setup ( name, pass, &ID );
+    output << "\npath: " << path << "\nID: " << ID << '\n';
+    
+    // starting ONLINE
+    long long start_result = online::Start ( name, 0, port ) << '\n';
+    output << "start result: " << ( start_result == 0 ? "succes" : "failed: " + std::to_string ( start_result ) ) << '\n';
+
+    // ONLINE threads
+    std::thread conn_thread;
+    conn_thread = std::thread ( Connections );
+
+    std::thread recv_thread;
+    recv_thread = std::thread ( Check_connections );
+
+    // random bg color 
+    srand (ID);
+    float BGR = 0.5 + ((float)(rand()%256))/512.0f, BGG = 0.5 + ((float)(rand()%256))/512.0f, BGB = 0.5 + ((float)(rand()%256))/512.0f;
+    std::cout << "BGR: " << BGR << '\n';
+    std::cout << "BGB: " << BGB << '\n';
+    std::cout << "BGG: " << BGG << '\n';
+
+    // main loop
+    while ( !Main_shutdown && grapik::IsEnd( ) ) {
+        glClearColor(BGR, BGG, BGB, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
+        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+        // command out;
+        total_lines = total_lines <= 8 ? 0 : total_lines - 8;
+        total_lines  = RenderText ( shader, output.str(), 25.0f, SCR_HEIGHT - 75.0f, 1.0f, glm::vec3(1-BGG, 1-BGR, 1-BGB), SCR_WIDTH - 50.0f, 50.0f, 8, start_line - total_lines );
+
+        // command box
+        RenderText ( shader, history[current_command], 25.0f, 100.0f, 0.75f, glm::vec3(0.0, 0.0f, 0.0f),SCR_WIDTH - 50.0f, 50.0f, 3, 0 );
 
         grapik::Pool();
     }
@@ -412,14 +494,15 @@ int main(int argc, char const *argv[]) {
     Main_shutdown = true;
 
     // terminate threads
-    try { 
-        recv_thread.join ( );
+    if ( recv_thread.joinable() ) { recv_thread.join ( ); }
+    if ( conn_thread.joinable() ) {
         TerminateThread (conn_thread.native_handle(),1);
         conn_thread.detach ( );
-    } catch ( const std::exception& e ) { std::cerr << e.what() << '\n'; }
-    
+    }
     grapik::Terminate ( ); 
     
     output << "correctly ended\n";
     return SUCCESS;
 }
+
+// add the trasmition of N size string
