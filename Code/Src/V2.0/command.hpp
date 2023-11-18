@@ -37,16 +37,28 @@ long long command ( std::string command ) {
     // args: node, msg
     if ( tokens[0] == "msg" ) {
         if ( tokens.size ( ) >= 3 ) {
-            // check if connected to node
-            bool C = false;
-            for ( std::string s : online::Connected ( ) ) { if ( s == tokens[1] ) { C = true; } }
-            if ( C == false ) { output << tokens[1] << " is not connected\n"; return SUCCESS; }
-            std::string R = "";
-            for (size_t i = 2; i < tokens.size(); i++) { R += " " + tokens[i]; }
-            R.erase (0,1);
-            output << "to " << tokens[1] << ": " << R << '\n';
-            return online::Send ( R.c_str(), R.size(), tokens[1] ); 
+            // check for multiple nodes
+            std::vector < std::string > nodes;
+            std::stringstream nodes_S (tokens[1]);
+            // Tokenizing w.r.t. comma ','
+            output << "stringstream: " << nodes_S.str();
+            while ( getline ( nodes_S, intermediate, ',' ) ) { nodes.push_back(intermediate); output << "\nmsg node: " << intermediate; }
+            output << "\nnodes" << nodes.size() << "\n ";// << nodes[0] << '\n';
+            
+            for ( auto node : nodes ) {
+                // check if connected to node
+                bool C = false;
+                for ( std::string s : online::Connected ( ) ) { if ( s == node ) { C = true; } }
+                if ( C == false ) { output << node << " is not connected\n"; }
+                std::string R = "";
+                for (size_t i = 2; i < tokens.size(); i++) { R += " " + tokens[i]; }
+                R.erase (0,1);
+                output << "to " << node << ": " << R << '\n';
+                online::Send ( R.c_str(), R.size(), node ); 
+            }
+            return SUCCESS;
         }
+        output << "command: " << command << " size: " << tokens.size() << '\n';
         return FAULTY_COMMAND;
     }
 

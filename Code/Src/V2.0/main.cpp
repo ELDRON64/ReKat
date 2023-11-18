@@ -10,7 +10,6 @@ int main ( int argc, char const *argv[] ) {
     
     switch ( argc ) {
     case 3: std::cout << "command defined name/pass\n"; name = argv[1]; pass = argv[2]; break;
-    case 4: std::cout << "command defined name/pass/port\n"; name = argv[1]; pass = argv[2]; port = stoi (argv[3]); break;
     }
 
     // get infos from GUI

@@ -5,19 +5,7 @@ option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(Code/Libs/glfw)
 
-option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-option(ASSIMP_BUILD_SAMPLES OFF)
-option(ASSIMP_BUILD_TESTS OFF)
-add_subdirectory(Code/Libs/assimp)
-
 add_subdirectory(Code/Libs/freetype)
-
-option(ALSOFT_BUILD_IMPORT_LIB ON)
-option(ALSOFT_UTILS FALSE)
-option(ALSOFT_EXAMPLES OFF)
-add_subdirectory(Code/Libs/openal-soft)
-
-
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /std:c++17")
@@ -31,11 +19,9 @@ else()
 endif()
 
 include_directories(Code/Include/
-                    Code/Libs/assimp/include/
                     Code/Libs/glad/include/
                     Code/Libs/freetype/include/
                     Code/Libs/glfw/include/
-                    Code/Libs/openal-soft/include/
                     Code/Libs/glm/
                     Code/Libs/stb/ )
 
@@ -89,7 +75,7 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
     # FindOpenAL doesn't seem to be set anymore either.
     # # REQUIRED HINTS "c:/Users/cicciogamer/Documents/ReKat/openAl" )
 
-target_link_libraries(${PROJECT_NAME} assimp glfw freetype 
+target_link_libraries(${PROJECT_NAME} glfw freetype 
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} ${OPENAL_LIBRARY} )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
