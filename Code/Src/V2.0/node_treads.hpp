@@ -8,7 +8,7 @@ void Connections ( ) {
     std::cout << "stop getting connections\n";
 }
 
-void Recive ( std::string node ) {
+void Recive ( std::string node, bool * is_closed ) {
     int status;
     size_t size = 0;
     char *_buf; 
@@ -19,33 +19,40 @@ void Recive ( std::string node ) {
         output << "fr " + node + ": " + std::string(_buf) + '\n';
     }
     std::cout << "closed recvie with" << node << '\n';
+    *is_closed = true;
     return;
 }
 
 void Check_connections ( ) {
-    std::vector < std::thread > node_threads;
-    std::vector < std::string > nodes = online::Connected();
-    std::string node_name;
+    // store threads and their state
+    std::vector < std::pair < std::pair < bool*, std::string > , std::thread > > threads;
     while ( !Main_shutdown ) {
-        if ( nodes == online::Connected() ) { continue; }
-        nodes = online::Connected();
-        // inizialize last n
-        int N = nodes.size() - node_threads.size();
-        for (int i = 0; i < N; i++) {
-            node_name = nodes[nodes.size() - i - 1];
-            node_threads.push_back ( std::thread ( Recive, node_name ) );
+        // if a new connection starts add its thread and status
+        std::vector < std::string > missing;
+        for ( auto s : online::Connected() ) {
+            bool found = false;
+            for (size_t i = 0; i < threads.size(); i++) { 
+                if ( s == threads[i].first.second && *threads[i].first.first == true ) 
+                    { found = true; } }
+            found == true ? 0 : missing.push_back (s);
         }
+
+        for ( auto m : missing ) 
+        // start missing threads 
+        { std::cout << "adding " << m << '\n'; bool end = false; 
+        threads.push_back ( std::make_pair ( std::make_pair ( &end, m ), std::thread ( Recive, m, &end ) ) ); }
     }
 
     // close nodes
-    nodes = online::Connected();
-    // for ( auto node : nodes ) { online::Close_sock ( node ); }
+    for ( size_t i = 0; i < threads.size(); i++ ) { if ( *threads[i].first.first ) { online::Close_sock ( threads[i].first.second ); } }
 
     // terminate nodes
-    if ( node_threads.size() == 0 ) { return; }
-    for ( size_t i = 0; i < node_threads.size() - 1; i++ ) 
-    {   if (node_threads[i].joinable()) 
-        { TerminateThread ( (HANDLE)node_threads[i].native_handle(), 1 ); node_threads[i].detach();} }
+    if ( threads.size() == 0 ) { return; }
+
+    for ( size_t i = 0; i < threads.size(); i++ ) {   
+        if ( threads[i].second.joinable() ) { 
+            TerminateThread ( (HANDLE)threads[i].second.native_handle(), 1 ); 
+            threads[i].second.detach(); } }
 
     output << "local nodes terminated\n";
 }

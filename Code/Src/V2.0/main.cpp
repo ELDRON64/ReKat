@@ -10,6 +10,7 @@ int main ( int argc, char const *argv[] ) {
     
     switch ( argc ) {
     case 3: std::cout << "command defined name/pass\n"; name = argv[1]; pass = argv[2]; break;
+    case 4: std::cout << "command defined name/pass\n"; name = argv[1]; pass = argv[2]; port = std::stoi(argv[3]); break;
     }
 
     // get infos from GUI
@@ -133,7 +134,7 @@ int main ( int argc, char const *argv[] ) {
     Main_shutdown = true;
 
     dump_history (path);
-    std::cout << "history dumped";
+    std::cout << "history dumped\n";
 
     std::cout << "terminating\n";
     // terminate threads

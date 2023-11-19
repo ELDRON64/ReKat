@@ -31,7 +31,6 @@ long long command ( std::string command ) {
             case online::SUCCESS: output << "connected to: " << tokens[1] << '\n'; return SUCCESS;        
             default: return p; break;
         }
-        
     }
 
     // args: node, msg
@@ -40,10 +39,7 @@ long long command ( std::string command ) {
             // check for multiple nodes
             std::vector < std::string > nodes;
             std::stringstream nodes_S (tokens[1]);
-            // Tokenizing w.r.t. comma ','
-            output << "stringstream: " << nodes_S.str();
-            while ( getline ( nodes_S, intermediate, ',' ) ) { nodes.push_back(intermediate); output << "\nmsg node: " << intermediate; }
-            output << "\nnodes" << nodes.size() << "\n ";// << nodes[0] << '\n';
+            while ( getline ( nodes_S, intermediate, ',' ) ) { nodes.push_back(intermediate); }
             
             for ( auto node : nodes ) {
                 // check if connected to node
