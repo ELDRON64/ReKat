@@ -20,3 +20,6 @@
 [submodule "Code/Libs/openal-soft"]
 	path = Code/Libs/openal-soft
 	url = https://github.com/kcat/openal-soft
+[submodule "Code/Libs/portaudio"]
+	path = Code/Libs/portaudio
+	url = https://github.com/PortAudio/portaudio
