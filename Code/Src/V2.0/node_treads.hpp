@@ -3,8 +3,10 @@
 void Connections ( ) { 
     while ( !Main_shutdown ) { 
         online::New_Connection();
-    output << "Connected to: " << online::Connected()[online::Connected().size()-1] <<'\n';
-} }
+        output << "Connected to: " << online::Connected()[online::Connected().size()-1] <<'\n';
+    }
+    std::cout << "stop getting connections\n";
+}
 
 void Recive ( std::string node ) {
     int status;
@@ -13,9 +15,11 @@ void Recive ( std::string node ) {
     while ( !Main_shutdown ) {
         _buf = online::Recv ( node, &status, &size, -1 );
         if ( status == online::FAILED_RECV ) 
-        { output << "connection with " << node << " closed\n"; online::Close_sock (node); return; }
+        { output << "connection with " << node << " closed\n"; online::Close_sock (node); break; }
         output << "fr " + node + ": " + std::string(_buf) + '\n';
     }
+    std::cout << "closed recvie with" << node << '\n';
+    return;
 }
 
 void Check_connections ( ) {
