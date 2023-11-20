@@ -1,11 +1,19 @@
 project(ReKat)
 
+# add_subdirectory(Code/Libs/portaudio)
+
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(Code/Libs/glfw)
 
+option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+option(ASSIMP_BUILD_SAMPLES OFF)
+option(ASSIMP_BUILD_TESTS OFF)
+add_subdirectory(Code/Libs/assimp)
+
 add_subdirectory(Code/Libs/freetype)
+
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /std:c++17")
@@ -19,6 +27,8 @@ else()
 endif()
 
 include_directories(Code/Include/
+                    # Code/Libs/portaudio/include/
+                    Code/Libs/assimp/include/
                     Code/Libs/glad/include/
                     Code/Libs/freetype/include/
                     Code/Libs/glfw/include/
@@ -65,18 +75,10 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${LIBS_SOURCES})
 
-# find_library ( OPENAL_LIBRARY
-    # Names same as in CMake's vanilla FindOpenAL
-    # # NAMES OpenAL al openal OpenAL32 OpenAL32d
-    # For binary OpenAL Soft distribution on Windows
-    # # PATH_SUFFIXES ${_OPENAL_LIBRARY_PATH_SUFFIX}
-    # The other PATHS from CMake's vanilla FindOpenAL seem to be a legacy
-    # cruft, skipping those. The Windows registry used by the vanilla
-    # FindOpenAL doesn't seem to be set anymore either.
-    # # REQUIRED HINTS "c:/Users/cicciogamer/Documents/ReKat/openAl" )
+find_package(portaudio)
 
-target_link_libraries(${PROJECT_NAME} glfw freetype 
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} ${OPENAL_LIBRARY} )
+target_link_libraries(${PROJECT_NAME} glfw freetype assimp # portaudio
+                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})

@@ -157,8 +157,6 @@ static int ReKat::online::New_Connection
 	fd_set FD_Listen;
 	FD_ZERO ( &FD_Listen ); //Clearing the socket set
 	FD_SET  ( internal::this_node.sock, &FD_Listen ); //Adding the master socket to the set 
-
-	int max_sock = internal::this_node.sock;
 			
 	//Waiting for something to happen on the master socket.
 	int act = select( 1 , &FD_Listen , nullptr , nullptr , nullptr /**/);
@@ -240,17 +238,17 @@ static int ReKat::online::internal::send_buf
 		
 	int act;
     if ( time == nullptr ) 
-    { act = select ( sock.sock + 1, nullptr, &sending_sock ,nullptr, nullptr ); } else {
+    { act = select ( 1, nullptr, &sending_sock ,nullptr, nullptr ); } else {
 		timeval wait_time = timeval();
 		wait_time.tv_sec = *time;
-		act = select ( sock.sock + 1, nullptr, &sending_sock ,nullptr, &wait_time );
+		act = select ( 1, nullptr, &sending_sock ,nullptr, &wait_time );
 	}
 
 	if (act < 0) { return TIMEOUT; }
 	if (FD_ISSET(sock.sock, &sending_sock)) {
-		long remaining = sizeof_buf;
-		long result = 0;
-		long sent = 0;
+		size_t remaining = sizeof_buf;
+		size_t result = 0;
+		size_t sent = 0;
 
 		while (remaining > 0) {
 			result = send(sock.sock, buf+sent, remaining, 0);
@@ -283,9 +281,9 @@ static int ReKat::online::internal::recv_buf
 
 	if (act < 0) { return TIMEOUT; }
 	if (FD_ISSET(sock.sock, &recive_sock)) {
-		long remaining = sizeof_buf;
-		long received = 0;
-		long result = 0;
+		size_t remaining = sizeof_buf;
+		size_t received = 0;
+		size_t result = 0;
 		
 		while (remaining > 0) {
 			result = recv(sock.sock, buf+received, remaining, 0);

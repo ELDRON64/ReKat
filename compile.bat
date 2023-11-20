@@ -1,8 +1,8 @@
 echo off
 
-cmake . -B ../Build -G "MinGW Makefiles"
+cmake . -B ../Build_m -G "MinGW Makefiles"
 
-cd ../Build
+cd ../Build_m
 
 mingw32-make
 
