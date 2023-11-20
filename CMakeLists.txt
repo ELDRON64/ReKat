@@ -2,6 +2,15 @@ cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake-modules/")
 
+# Src
+file(GLOB _PROJECT_SOURCES # Code/Src/grapik.cpp
+                          # Code/Src/node.cpp
+                          # Code/Src/V1.0/merged.cpp
+                          # Code/Src/V1.1/main.cpp
+                          Code/Src/V1.2/main.cpp
+                          Code/Include/*.cpp )
+
+# Test
 file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           # Code/Test/TestSock_Win/client.cpp
                           # Code/Test/TestSock_Win/server.cpp
@@ -13,11 +22,8 @@ file(GLOB PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           # Code/Test/texture_RK.cpp
                           # Code/Test/tex.cpp
                           # Code/Test/*.cpp
-                          # Code/Src/grapik.cpp
-                          # Code/Src/node.cpp
-                          # Code/Src/V1.0/merged.cpp
-                          # Code/Src/V1.1/main.cpp
-                          Code/Src/V1.2/main.cpp
                           # Code/Test/Audio_test/main.cpp
-                          Code/Include/*.cpp )
+                          Code/Test/button_test.cpp
+)
+
 include( "cmake-modules/executable.cmake" )

@@ -23,6 +23,7 @@
 	#include <Graphik/graphik.hpp>
 	#include <Graphik/text.hpp>
 	#include <Graphik/camera.h>
+	#include <Graphik/button.hpp>
 #endif
 
 #ifdef OPENAL
