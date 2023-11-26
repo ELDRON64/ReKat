@@ -1,12 +1,12 @@
 #define OPENGL
-#include <Graphik/button.hpp>
+#include <ReKat.hpp>
 using namespace ReKat::grapik;
 
 void foo () {
     std::cout << "ciao\n";
 }
 
-button b("carlo", 100, 100, 100, 100, &foo );
+Gui::Button b("carlo", 100, 100, 100, 100, &foo );
 
 static void ReKat::grapik::Input::Keyboard ( GLFWwindow* window, int key, int scancode, int action, int mode ) { }
 static void ReKat::grapik::Input::Mouse ( GLFWwindow* window, double xpos, double ypos ) 
@@ -20,36 +20,22 @@ int main(int argc, char const *argv[]) {
     Start( "button test", 400, 500 );
     
     // load shaders
-    Shader text_shader;
-    text_shader.Make ( "Shaders/text.vs", "Shaders/text.fs" );
-    Shader sprite_shader;
-    sprite_shader.Make ( "Shaders/sprite.vs", "Shaders/sprite.fs" );
+    std::cout << "text shader load: " << Resource_Manager::Load_Shader ( "text", "Shaders/text.vs", "Shaders/text.fs" ) << '\n';
 
+    // set shader params
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(400), 0.0f, static_cast<float>(500));
 
-    text_shader.use ( );
-    text_shader.setMat4 ( "projection", projection );
+    Resource_Manager::Get_Shader ( "text" ).setMat4 ( "projection", projection );
 
-    sprite_shader.use ( );
-    sprite_shader.setInt ( "image",0 );
-    sprite_shader.setMat4 ( "projection", projection );
-
-    // load text 
-    Text text;
-    text.make ("death_record.ttf") << '\n';
-
-    // load texture
-    Texture2D texture;
-    // ResourceManager::LoadTexture("textures/awesomeface.png", true, "face");
-
-    // load sprite rendere
-    Sprite sprite ( sprite_shader );
+    // load text
+    std::cout << "text load: " << Resource_Manager::Load_Text ( "record", "death_record.ttf" ) << '\n';
 
     while ( IsEnd() ) {
         glClearColor(0.5f, 0.6f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        Resource_Manager::Get_Text ( "record" ).RenderText( Resource_Manager::Get_Shader ( "text" ), "text", 25.0f, 100.0f, 0.75f, glm::vec3(0.0, 0.0f, 0.0f), 400.0f - 50.0f, 50.0f, 3, 0 );
 
-        b.Draw ( text, text_shader ,sprite, texture );
+        b.Draw ( Resource_Manager::Get_Text ( "record" ), Resource_Manager::Get_Shader ( "text" ) );
 
         Pool();
     }
