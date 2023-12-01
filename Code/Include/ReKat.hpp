@@ -21,6 +21,14 @@
 
 #ifdef OPENGL
 	#include <Graphik/graphik.hpp>
+	#ifdef ALL_MODULES
+		#include <Graphik/shader.h>
+		#include <Graphik/text.h>
+		//#include <Graphik/texture.h>
+		#include <Graphik/camera.h>
+		//#include <Graphik/sprite.h>
+		#include <Graphik/button.h>
+	#endif
 #endif
 
 #ifdef OPENAL

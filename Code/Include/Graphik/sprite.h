@@ -1,7 +1,8 @@
-#pragma once
+#ifndef SPRITE_H
+#define SPRITE_H
 
 #include "shader.h"
-#include "texture.hpp"
+#include "texture.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -39,9 +40,9 @@ public:
 
     ~Sprite ( ) { glDeleteVertexArrays(1, &this->quadVAO); }
 
-    void Draw ( Texture2D &texture, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color ) {
+    void Draw ( Texture &texture, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color ) {
         // prepare transformations
-        this->shader.use();
+        this->shader.Use();
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(position, 0.0f));  // first translate (transformations are: scale happens first, then rotation, and then final translation happens; reversed order)
 
@@ -64,3 +65,5 @@ public:
         glBindVertexArray(0);
     }
 };
+
+#endif

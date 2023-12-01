@@ -5,7 +5,9 @@
 
 #include <string>
 #include <vector>
-using namespace std;
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 #define MAX_BONE_INFLUENCE 4
 
