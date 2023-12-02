@@ -131,7 +131,7 @@ int main ( int argc, char const *argv[] ) {
         if ( old_out == out ) { scrool += start_line;
         } else { start_line = 0; }
         if ( scrool < 0 ) // lower limit
-        { scrool = 0; start_line = 0; }
+        { scrool = 0; start_line = old_start_line; }
         if ( scrool > out ) // upper limit
         { scrool = out; start_line = out;}
         old_out = out;
