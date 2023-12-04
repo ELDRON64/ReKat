@@ -4,6 +4,7 @@
 #include "shader.h"
 
 #include <map>
+#include <vector>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -37,10 +38,11 @@ public:
     Shader *_shader = nullptr;
 
     Text ( ) { }
-    Text ( std::string font ) { Make ( font ); }
-    Text ( std::string font, Shader *shader ) { Make ( font ); Set_Shader ( shader ); }
+    Text ( std::string font, Shader *shader ) { Make ( font, shader ); }
 
-    int Make ( std::string font ) {
+    int Make ( std::string font, Shader *shader ) {
+        _shader = shader;
+
         if ( FT_Init_FreeType ( &ft ) ) 
         { return FAILED_INIT_FREETYPE; }
 
@@ -103,7 +105,7 @@ public:
 
         return SUCCESS;
     }
-    void Set_Shader ( Shader *shader ) { _shader = shader; }
+
     int Get_Max_Rows ( float heigth, float scale, int *wrap_h_out = nullptr, int wrap_h = -1 ) {
         if ( wrap_h == -1 ) {
             // get heigth of A: 

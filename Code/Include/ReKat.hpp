@@ -26,8 +26,10 @@
 		#include <Graphik/text.h>
 		//#include <Graphik/texture.h>
 		#include <Graphik/camera.h>
-		//#include <Graphik/sprite.h>
+		#include <Graphik/sprite.h>
 		#include <Graphik/button.h>
+		#include <Graphik/tilemap.h>
+		#include <Graphik/manager.h>
 	#endif
 #endif
 
