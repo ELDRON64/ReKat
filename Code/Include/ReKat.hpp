@@ -30,6 +30,7 @@
 		#include <Graphik/button.h>
 		#include <Graphik/tilemap.h>
 		#include <Graphik/manager.h>
+		#include <Graphik/object.h>
 	#endif
 #endif
 

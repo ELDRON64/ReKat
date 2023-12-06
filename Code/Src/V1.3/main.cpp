@@ -121,7 +121,6 @@ int main ( int argc, char const *argv[] ) {
         glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
         // command out; 
-
         int out = text.RenderText ( output.str(), {25.0f,SCR_HEIGHT-75.0f}, { SCR_WIDTH-50.0f, SCR_HEIGHT - 75.0f - 100.0f}, 1.0f, 
                                   glm::vec3(1-BGG, 1-BGR, 1-BGB), scrool );
         int max_rows = text.Get_Max_Rows ( SCR_HEIGHT-75.0f - 100.0f,1.0f );

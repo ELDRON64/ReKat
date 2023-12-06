@@ -1,3 +1,6 @@
+#ifndef TILEMAP_H
+#define TILEMAP_H
+
 #include "sprite.h"
 #include <vector>
 #include <iostream>
@@ -6,8 +9,7 @@
 // can load multiple layers
 class Tilemap {
 private:
-    glm::vec2 tileset_size;
-    Sprite  s_renerer;
+    Sprite   *s_renerer;
     struct Layer {
         int Width, Heigth;
         std::vector<int> Data;
@@ -20,9 +22,9 @@ public:
         SUCCESS,
         FAILED_OPEN_TILEMAP
     };
-    Tilemap ( Sprite &render, glm::vec2 tileset_size ) : tileset_size(tileset_size)
+    Tilemap ( Sprite *render )
     { s_renerer = render; }
-    Tilemap ( Sprite &render, glm::vec2 tileset_size, std::string path ) : tileset_size(tileset_size)
+    Tilemap ( Sprite *render, std::string path )
     { s_renerer = render; Make ( path ); }
 
     // pass a path to a csv file
@@ -77,8 +79,10 @@ public:
             for (size_t x = 0; x < Width; x++) {
                 int location = y * Width + x;
                 if ( data[location] >= 0 ) 
-                { s_renerer.Draw_frame ( data[location], pos + glm::vec2(x,y) * tile_size, tile_size, 0 ); }
+                { s_renerer->Draw_frame ( data[location], pos + glm::vec2(x,y) * tile_size, tile_size, 0 ); }
             } }
         }
     }
 };
+
+#endif

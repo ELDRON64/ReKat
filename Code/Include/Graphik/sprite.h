@@ -9,23 +9,22 @@
 
 class Sprite {
 private:
-    Shader       shader; 
-    Texture      texture;
+    Shader       *shader; 
+    Texture      *texture;
     unsigned int quadVAO;
     glm::vec2 sprite_dim;
 public:
     Sprite ( ) { }
-    Sprite ( Shader &shader ) : shader(shader) { Make ( ); }
-    Sprite ( Shader &shader, Texture &texture, glm::vec2 sprite_set ) : shader(shader) 
+    Sprite ( Shader *shader ) : shader(shader) { Make ( ); }
+    Sprite ( Shader *shader, Texture *texture, glm::vec2 sprite_set ) : shader(shader) 
     { Make ( ); Set_Texture(texture,sprite_set); }
     // sprite_set is {columns, rows}
-    void Set_Texture ( Texture &texture, glm::vec2 sprite_set ) {
-        shader.Use();
+    void Set_Texture ( Texture *texture, glm::vec2 sprite_set ) {
         this->texture = texture;
         sprite_dim = sprite_set;
-        shader.setFloat ( "SPRITE_COLUMNS", sprite_set.x );
-        shader.setFloat ( "SPRITE_ROWS", sprite_set.y );
-        shader.setFloat ( "NUM_OF_SPRITES", (int)(sprite_set.x * sprite_set.y) );
+        shader->setFloat ( "SPRITE_COLUMNS", sprite_set.x );
+        shader->setFloat ( "SPRITE_ROWS", sprite_set.y );
+        shader->setFloat ( "NUM_OF_SPRITES", (int)(sprite_set.x * sprite_set.y) );
     }
     int Make ( )  {
         unsigned int VBO;
@@ -56,9 +55,8 @@ public:
 
     ~Sprite ( ) { glDeleteVertexArrays(1, &this->quadVAO); }
 
-    void Draw ( Texture &texture, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color ) {
+    void Draw ( Texture *texture, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color ) {
         // prepare transformations
-        this->shader.Use();
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(position, 0.0f));  // first translate (transformations are: scale happens first, then rotation, and then final translation happens; reversed order)
 
@@ -68,13 +66,13 @@ public:
 
         model = glm::scale(model, glm::vec3(size, 1.0f)); // last scale
 
-        this->shader.setMat4("model", model);
+        this->shader->setMat4("model", model);
 
         // render textured quad
-        this->shader.setVec3("spriteColor", color);
+        this->shader->setVec3("spriteColor", color);
 
         glActiveTexture(GL_TEXTURE0);
-        texture.Bind();
+        this->texture->Bind();
 
         glBindVertexArray(this->quadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -83,8 +81,6 @@ public:
 
     void Draw_frame ( int frame,  glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color = {1,1,1} ) {
         // prepare transformations
-        std::cout << "draw call";
-        this->shader.Use();
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(position, 0.0f));  // first translate (transformations are: scale happens first, then rotation, and then final translation happens; reversed order)
 
@@ -94,16 +90,16 @@ public:
 
         model = glm::scale(model, glm::vec3(size, 1.0f)); // last scale
 
-        this->shader.setMat4 ("model", model);
+        this->shader->setMat4 ("model", model);
 
         // render textured quad
-        this->shader.setVec3 ("spriteColor", color);
+        this->shader->setVec3 ("spriteColor", color);
 
         // set frame
-        this->shader.setInt ("frame", frame);
+        this->shader->setInt ("frame", frame);
 
         glActiveTexture(GL_TEXTURE0);
-        texture.Bind();
+        this->texture->Bind();
 
         glBindVertexArray(this->quadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);

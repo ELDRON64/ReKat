@@ -24,7 +24,7 @@ Button::Button( std::string text, int x, int y, int width, int heigth, void(*cal
 : name(text), X(x), Y(y), w(width), h(heigth), _call(callback) { }
 
 void Button::Draw ( Text &text, Shader &shader, Sprite &sprite, Texture &texture, int SCR_H ) {
-    sprite.Draw ( texture,{X,Y},{w,h},0,{1,1,1} );
+    sprite.Draw ( &texture,{X,Y},{w,h},0,{1,1,1} );
     text.RenderText ( shader, name, X, Y+h/2, 1, glm::vec3{0,0,0}, w, h, 1, 0 );
 }
 

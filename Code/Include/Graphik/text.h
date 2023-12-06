@@ -119,14 +119,14 @@ public:
     // if wrap_h is negative the heigth of the A * 1.5 will be used
     // @return rendered lines
     // start_line > 0
-    int RenderText ( std::string text, glm::vec2 pos, glm::vec2 dim, float scale, glm::vec3 color = { 0, 0 ,0 }, 
+    int RenderText ( std::string text, glm::vec2 pos, glm::vec2 dim, float scale, glm::vec4 color = { 0, 0 ,0, 1 }, 
     int start_rows = 0, int wrap_h = -1, Text_guistifiaction text_guistifiaction = LEFT ) {
         if ( _shader == nullptr ) { return SHADER_NOT_SET; }
         // calcualte max aviable rows
         int max_rows = Get_Max_Rows ( dim.y, scale, &wrap_h );
 
         _shader->Use();
-        glUniform3f(glGetUniformLocation(_shader->ID, "textColor"), color.x, color.y, color.z);
+        _shader->setVec4 ( "textColor", color );
         glActiveTexture(GL_TEXTURE0);
         glBindVertexArray(VAO);
 
