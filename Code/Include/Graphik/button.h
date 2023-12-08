@@ -4,19 +4,20 @@
 
 class Button {
 private:
+    std::string name;
+
     bool hower = false;
     bool click = false;
     int  start_frame = 0;
     void (* _call ) ();
     glm::vec2 old_pos;
     Object obj;
-    std::string name;
 public:
     // sprite frames: (relative to base sprite) +0(idle), +1(hower), +2(pressed)
     Button ( ) { }
-    Button ( std::string text, Sprite *sprite, glm::vec2 _pos, glm::vec2 _size, void(*click_callback)( ), int start_frame = 0 )
-    : _call(click_callback), start_frame(start_frame) {
-        obj = Object ( sprite, _pos, _size );
+    Button ( std::string _name, std::string text, Sprite *sprite, glm::vec2 _pos, glm::vec2 _size, void(*click_callback)( ), int start_frame = 0 )
+    : name(_name), _call(click_callback), start_frame(start_frame) {
+        obj = Object ( _name, sprite, _pos, _size );
     }
     ~Button ( ) { }
 

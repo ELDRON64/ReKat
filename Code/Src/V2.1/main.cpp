@@ -98,7 +98,7 @@ int main(int argc, char const *argv[]) {
         Render();
         if ( Render_splash_fade ( ) == 1 ) 
         { break; }
-        ReKat::grapik::Pool(); 
+        ReKat::grapik::Pool();
     }
 
     while ( !Main_shutdown && grapik::IsEnd( ) ) 

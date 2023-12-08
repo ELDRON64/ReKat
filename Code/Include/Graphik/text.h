@@ -110,9 +110,9 @@ public:
         if ( wrap_h == -1 ) {
             // get heigth of A: 
             Character A = Characters['A'];
-            wrap_h = A.Size.y * 1.5f * scale; }
+            wrap_h = (int)(A.Size.y * 1.5f * scale); }
         if ( wrap_h_out != nullptr ) { *wrap_h_out = wrap_h; }
-        return heigth / wrap_h;
+        return (int)(heigth / wrap_h);
     }
 
     // creates a box for the text (the bottom left corner is {0,0}) and start to render from the top of the box 

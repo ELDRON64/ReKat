@@ -77,8 +77,6 @@ long long command ( std::string command ) {
         output.str(""); output << Begin_string; return SUCCESS; 
     }
 
-    if ( tokens[0] == "refresh" ) { return online::Refresh(); }
-
     if ( tokens[0] == "disconnect" ) {
         if ( tokens.size ( ) == 2 ) {
             if ( tokens[1] == "--all") {
@@ -121,7 +119,7 @@ void execute_command ( ) {
 
 void Send_positon ( ) {
     // send
-    char *_buf = add_ending ( Objects[""].packpos(), sizeof(glm::vec2), 'v' );
+    char *_buf = add_ending (Manager::Object_Get("Player")->packpos(), sizeof(glm::vec2), 'v' );
     std::cout << "sending pos\n";
     // to every connected node
     for ( auto s : online::Connected() ) {

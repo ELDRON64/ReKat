@@ -24,7 +24,7 @@ void Recive ( std::string node, int * is_closed ) {
         switch ( _buf[size-1] ) {
         case 'v':
             // modify position of node
-            Objects[node].Move(remove_ending<glm::vec2>(_buf));        
+            //Objects[node].Move(remove_ending<glm::vec2>(_buf));        
         break;
         case 't': output << "fr " + node + ": " + std::string(_buf).erase(size-1,1) + '\n'; break;
         }
@@ -32,7 +32,7 @@ void Recive ( std::string node, int * is_closed ) {
     }
     std::cout << "closed recive with " + node + '\n';
     // revove obj
-    Objects.erase(node);
+    //Objects.erase(node);
     *is_closed = 1;
     return;
 }
@@ -57,7 +57,7 @@ void Check_connections ( ) {
             std::cout << "adding " + m + '\n'; 
             end = (int*) calloc (1,sizeof(int));
             threads.push_back ( std::make_pair ( std::make_pair ( end, m ), std::thread ( Recive, m, end ) ) );
-            Objects.insert ( {m, Object ( Manager::Sprite_Get( "sprite" ), {100*(threads.size()+1),100}, {100,100} )} );
+            //Objects.insert ( {m, Object ( m, Manager::Sprite_Get( "sprite" ), {100*(threads.size()+1),100}, {100,100} )} );
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

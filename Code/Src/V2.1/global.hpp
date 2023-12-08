@@ -58,5 +58,3 @@ float BGR, BGG, BGB;
 
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
-
-std::unordered_map < std::string, Object > Objects;

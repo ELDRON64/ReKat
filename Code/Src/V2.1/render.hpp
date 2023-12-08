@@ -1,4 +1,4 @@
-#include "controlls.hpp"
+#include "load.hpp"
 
 void button_callback ( ) {
     grapik::End();
@@ -10,48 +10,23 @@ void Grapik_Init ( ) {
     ReKat::grapik::Start ( "Kat Kave", SCR_WIDTH, SCR_HEIGHT, false, false, true );
     std::cout << "icon set: " << ReKat::grapik::SetIcon ( "favicon.png" ) << '\n';
 
-    // Load resources
-    std::cout << "text shader make: "    << Manager::Shader_Load ( "text", "Shaders/text.vs", "Shaders/text.fs" ) << '\n';
-    std::cout << "sprite shader make: "  << Manager::Shader_Load ( "sprite",  "Shaders/sprite_animation.vs", "Shaders/sprite_animation.fs" ) << '\n';
-    std::cout << "empty_sprite shader make: "  << Manager::Shader_Load ( "empty_sprite",  "Shaders/sprite_animation.vs", "Shaders/sprite_animation.fs" ) << '\n';
-    std::cout << "tilemap shader make: " << Manager::Shader_Load ( "tilemap", "Shaders/sprite_animation.vs", "Shaders/sprite_animation.fs" ) << '\n';
-    std::cout << "UI shader make: " << Manager::Shader_Load ( "UI", "Shaders/sprite_animation.vs", "Shaders/sprite_animation.fs" ) << '\n';
+    Load_resources ( );
     
-
-    std::cout << "sprite texture make: "  << Manager::Texture_Load ( "sprite", "Sprites/soldato.png" ) << '\n';
-    std::cout << "Button texture make: "  << Manager::Texture_Load ( "Buttons", "Sprites/UI_menu.png" ) << '\n';
-    std::cout << "empty_sprite texture make: "  << Manager::Texture_Load ( "empty_sprite", "Data/empty.png" ) << '\n';
-    std::cout << "tileset texture make: " << Manager::Texture_Load ( "tileset", "Data/tile1.png" )  << '\n';
-    
-    std::cout << "death_record text make: " << Manager::Text_Load ( "death_record", "death_record.ttf", "text" ) << '\n';
-
-    // configure resources
-    Manager::Shader_Get("text")->setMat4("projection", glm::ortho ( 0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT) ));
-    Manager::Shader_Get("sprite")->setInt ("image", 0);
-    Manager::Shader_Get("sprite")->setMat4("projection", cam.GetWiew());
-    Manager::Shader_Get("UI")->setInt ("image", 0);
-    Manager::Shader_Get("UI")->setMat4("projection", cam.GetWiew());
-    Manager::Shader_Get("empty_sprite")->setInt ("image", 0);
-    Manager::Shader_Get("empty_sprite")->setMat4("projection", cam.GetWiew());
-    Manager::Shader_Get("tilemap")->setInt ("image", 0 );
-    Manager::Shader_Get("tilemap")->setMat4("projection", cam.GetWiew());
-
-    // configure renderers
-    Manager::Sprite_Load ( "sprite", "sprite", "sprite", {1,1} );
-    Manager::Sprite_Load ( "UI", "UI", "Buttons", {3,4} );
-    Manager::Sprite_Load ( "empty_sprite", "empty_sprite", "empty_sprite" );
-    Manager::Sprite_Load ( "tilemap", "tilemap", "tileset", {32,32} );
-    Manager::Tilemap_Load ( "tilemap", "tilemap", "Data/Tilemaps/Layer2.csv" );
-
     // configure objects
     Manager::Buttton_Load ( "start", "START", "UI", {0,0}, {100,100}, button_callback, 6 );
 
     // configure player
-    Objects.insert( { "", Object ( Manager::Sprite_Get( "sprite" ), {100,100}, {100,100} )} );
+    Manager::Object_Load ( "Player", "Player", {100,100}, {100,100} );
+    Manager::Object_Load ( "Spada", "Spada",{100,100}, {100,100} );
+
+    Manager::Object_Get("Spada")->Set_Rotation_Pivot({0.5,1});
+    Manager::Object_Get("Player")->Add_Sub_Object ( "Spada", Manager::Object_Get("Spada") );
+
+    Manager::Start ( );
 }
 
 uint64_t spash_start = Get_Time();
-float duration = 5000.0f;
+float duration = 500.0f;
 int Render_splash ( ) {
     float alpha = ( Get_Time() - spash_start ) / duration;
     glClearColor(0, 0, 0, 1.0f);
@@ -68,7 +43,7 @@ int Render_splash ( ) {
     else { return 0;}
 }
 
-float duration_2 = 500.0f;
+float duration_2 = 50.0f;
 int Render_splash_fade ( ) {
     float alpha = ( duration_2 - ( Get_Time() - spash_start ) ) / duration_2;
     Manager::Shader_Get("text")->setMat4("projection", glm::ortho ( 0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT) ));
@@ -127,17 +102,16 @@ void Render ( ) {
     if ( fps%20 == 0 ) { frame ++; }
 
     // updating camera projections
-    Manager::Shader_Get( "sprite"  )->setMat4("projection", cam.GetWiew());
+    Manager::Shader_Get( "sprite_1x1"  )->setMat4("projection", cam.GetWiew());
+    Manager::Shader_Get( "sprite_2x2"  )->setMat4("projection", cam.GetWiew());
     Manager::Shader_Get( "tilemap" )->setMat4("projection", cam.GetWiew());
     Manager::Shader_Get("text")->setMat4("projection", glm::ortho ( 0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT) ));
     
+    cam.Move( Manager::Object_Get("Player")->Get_pos() - glm::vec2{SCR_WIDTH/2,SCR_HEIGHT/2});
 
     // Manager::Sprite_Get( "sprite" )->Draw_frame( frame, {300,100},{100,100},0 );
     // Manager::Text_Get ( "death_record" )->RenderText ( "ciao", {25.0f,SCR_HEIGHT-75.0f}, { SCR_WIDTH-50.0f, 200.0f}, 1.0f, glm::vec3(0.21875f, 0, 0.21875f));
     Manager::Tilemap_Get ( "tilemap" )->Draw({100,300},{50,50});
-
-    for ( auto obj : Objects ) 
-    { obj.second.Draw ( ); }
 
     /// ------------------------------------------------------------------------- ///
     // -------------------------------------- UI --------------------------------- //
@@ -145,5 +119,6 @@ void Render ( ) {
     
     if ( text_mode ) { Render_text(); }
 
-    Manager::Draw();
+    Manager::Update ( );
+    Manager::Draw ( );
 }

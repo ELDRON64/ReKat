@@ -78,7 +78,7 @@ public:
                 teShaderFile.close();
                 tessEvalCode = teShaderStream.str();
             }
-        } catch (std::ifstream::failure& e) { return FAILED_LOADING_SHADER; }
+        } catch ( std::ifstream::failure& e ) { return FAILED_LOADING_SHADER; }
         const char* vShaderCode = vertexCode.c_str();
         const char * fShaderCode = fragmentCode.c_str();
         // 2. compile shaders

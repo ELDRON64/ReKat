@@ -251,7 +251,7 @@ static int ReKat::online::internal::send_buf
 		size_t sent = 0;
 
 		while (remaining > 0) {
-			result = send(sock.sock, buf+sent, remaining, 0);
+			result = send(sock.sock, buf+sent, (int)remaining, 0);
 
 			if (result > 0) { 
 				remaining -= result; sent += remaining; 
@@ -273,10 +273,10 @@ static int ReKat::online::internal::recv_buf
 	
 	int act;
     if ( time == nullptr ) 
-    { act = select ( sock.sock + 1, &recive_sock, nullptr ,nullptr, nullptr ); } else {
+    { act = select ( 1, &recive_sock, nullptr ,nullptr, nullptr ); } else {
 		timeval wait_time = timeval();
 		wait_time.tv_sec = *time;
-		act = select ( sock.sock + 1, &recive_sock, nullptr ,nullptr, &wait_time );
+		act = select ( 1, &recive_sock, nullptr ,nullptr, &wait_time );
 	}
 
 	if (act < 0) { return TIMEOUT; }
@@ -286,7 +286,7 @@ static int ReKat::online::internal::recv_buf
 		size_t result = 0;
 		
 		while (remaining > 0) {
-			result = recv(sock.sock, buf+received, remaining, 0);
+			result = recv(sock.sock, buf+received, (int)remaining, 0);
 			if (result > 0) {
 				remaining -= result;
 				received += result;
@@ -334,27 +334,5 @@ static int ReKat::online::Close_sock ( std::string node ) {
 	internal::node_network.erase ( node );
 	return SUCCESS;
 }
-
-static int ReKat::online::Refresh 
-( ) {
-    for ( auto S : internal::node_network ) {
-        int error = 0;
-        socklen_t len = sizeof (error);
-        int retval = getsockopt (S.second.sock, SOL_SOCKET, SO_ERROR, (char*)&error, &len);
-
-        if (retval != 0) {
-            /* there was a problem getting the error code */
-            fprintf(stderr, "error getting socket error code: %s\n", strerror(retval));
-            continue;
-        }
-
-        if (error != 0) {
-            /* socket has a non zero error status */
-            fprintf(stderr, "socket error: %s\n", strerror(error));
-        }
-    }
-
-    return SUCCESS;
-} 
 
 #endif

@@ -66,7 +66,7 @@ namespace Manager {
     static Object* Object_Get  ( std::string name ) 
     { return Objects [name]; }
     static int Object_Load ( std::string name, std::string sprite, glm::vec2 pos, glm::vec2 size  ) {
-        Object *o = new Object ( Sprites[sprite], pos, size );
+        Object *o = new Object ( name, Sprites[sprite], pos, size );
         Objects.insert( { name, o } );
         return 0;
     }
@@ -74,7 +74,7 @@ namespace Manager {
     static Button* Button_Get  ( std::string name ) 
     { return Buttons [name]; }
     static int Buttton_Load ( std::string name, std::string text, std::string sprite, glm::vec2 pos, glm::vec2 size, void(*click_callback)( ), int start_frame = 0 ) {
-        Button *b = new Button ( text, Sprites[sprite], pos, size, click_callback, start_frame );
+        Button *b = new Button ( name, text, Sprites[sprite], pos, size, click_callback, start_frame );
         Buttons.insert( { name, b } );
         return 0;
     }
@@ -83,8 +83,8 @@ namespace Manager {
     static void Draw ( ) {
         for ( auto o : Objects ) 
         { o.second->Draw ( ); }
-        for ( auto b : Buttons ) 
-        { b.second->Draw ( ); }
+       // for ( auto b : Buttons ) 
+       // { b.second->Draw ( ); }
     }
 
 // UI update logic
@@ -104,6 +104,16 @@ namespace Manager {
             { b.second->Release ( ); }
             break;
         }
+    }
+
+    static void Start ( ) {
+        for ( auto o : Objects ) 
+        { o.second->Start(); }
+    }
+
+    static void Update ( ) {
+        for ( auto o : Objects ) 
+        { o.second->Update(); }
     }
 
 }; // namespace Manager

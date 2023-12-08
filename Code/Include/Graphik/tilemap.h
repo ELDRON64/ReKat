@@ -29,7 +29,6 @@ public:
 
     // pass a path to a csv file
     int Make ( std::string path ) {
-
         std::vector < std::string > Data;
         std::ifstream Data_stream;
         // ensure ifstream objects can throw exceptions:
@@ -58,7 +57,7 @@ public:
             Width = W;
         }
 
-        std::cout << "loaded image with: W=" << Width << " H=" << Heigth << '\n';
+        // std::cout << "loaded image with: W=" << Width << " H=" << Heigth << '\n';
 
         layers = (Layer*) calloc (N_layers,sizeof(Layer));
         for ( size_t i = 0; i < N_layers; i++ ) {
@@ -66,6 +65,7 @@ public:
             layers[i].Width = Width;
             layers[i].Data = values;
         }
+        return SUCCESS;
     }
 
     // render:

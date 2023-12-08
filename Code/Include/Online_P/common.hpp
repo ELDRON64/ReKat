@@ -58,9 +58,6 @@ namespace online {
 	/// @brief disconnects the node
 	static int Close_sock ( std::string node );
 
-	/// @brief Verifies that the currently marked as connected nodes are still connected the removes the disconnected ones
-	static int Refresh ( );
-
 	/// @brief Get the name of every entry of the Node_Network (even the disconnected) to prevent this us Refresh before calling
 	static std::vector<std::string> Connected ( );
 
