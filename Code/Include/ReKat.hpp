@@ -31,6 +31,7 @@
 		#include <Graphik/tilemap.h>
 		#include <Graphik/manager.h>
 		#include <Graphik/object.h>
+		#include <Graphik/colors.h>
 	#endif
 #endif
 

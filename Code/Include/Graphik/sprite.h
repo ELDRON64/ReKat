@@ -79,7 +79,7 @@ public:
         glBindVertexArray(0);
     }
 
-    void Draw_frame ( int frame,  glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color = {1,1,1} ) {
+    void Draw_frame ( int frame,  glm::vec2 position, glm::vec2 size, float rotate, glm::vec4 color = {1,1,1,1}) {
         // prepare transformations
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(position, 0.0f));  // first translate (transformations are: scale happens first, then rotation, and then final translation happens; reversed order)
@@ -89,13 +89,10 @@ public:
         model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f)); // move origin back
 
         model = glm::scale(model, glm::vec3(size, 1.0f)); // last scale
-
+        
+        // set uniforms
         this->shader->setMat4 ("model", model);
-
-        // render textured quad
-        this->shader->setVec3 ("spriteColor", color);
-
-        // set frame
+        this->shader->setVec4 ("spriteColor", color);
         this->shader->setInt ("frame", frame);
 
         glActiveTexture(GL_TEXTURE0);

@@ -3,15 +3,12 @@ include (GenerateExportHeader)
 
 project(ReKat)
 
+add_subdirectory(Code/Libs/portaudio)
+
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(Code/Libs/glfw)
-
-option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-option(ASSIMP_BUILD_SAMPLES OFF)
-option(ASSIMP_BUILD_TESTS OFF)
-add_subdirectory(Code/Libs/assimp)
 
 add_subdirectory(Code/Libs/freetype)
 
@@ -35,6 +32,9 @@ file(GLOB LIBS_SOURCES Code/Libs/glad/src/glad.c)
 source_group("Libs" FILES ${LIBS_SOURCES})
 
 add_library ( ${PROJECT_NAME} SHARED ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} ${LIBS_SOURCES})
+
+target_link_libraries(${PROJECT_NAME} glfw freetype portaudio
+                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} )
 
 GENERATE_EXPORT_HEADER ( ${PROJECT_NAME}
              BASE_NAME ${PROJECT_NAME}

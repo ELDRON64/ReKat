@@ -7,11 +7,6 @@ option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(Code/Libs/glfw)
 
-option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-option(ASSIMP_BUILD_SAMPLES OFF)
-option(ASSIMP_BUILD_TESTS OFF)
-add_subdirectory(Code/Libs/assimp)
-
 add_subdirectory(Code/Libs/freetype)
 
 
@@ -77,7 +72,7 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
 
 find_package(portaudio)
 
-target_link_libraries(${PROJECT_NAME} glfw freetype assimp # portaudio
+target_link_libraries(${PROJECT_NAME} glfw freetype # portaudio
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${WINSOCK_LIBRARIES} )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

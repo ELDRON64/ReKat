@@ -8,7 +8,8 @@ file(GLOB PROJECT_SOURCES # Code/Src/grapik.cpp
                           # Code/Src/V1.0/merged.cpp
                           # Code/Src/V1.1/main.cpp
                           # Code/Src/V1.3/main.cpp
-                          Code/Src/V2.0/main.cpp
+                          # Code/Src/V2.0/main.cpp
+                          Code/Src/V2.1/main.cpp
                           Code/Include/*.cpp )
 
 # Test
@@ -28,4 +29,6 @@ file(GLOB _PROJECT_SOURCES # Code/Test/Graphik/help.cpp
                           Code/Test/tile_map.cpp
 )
 
-include( "cmake-modules/executable.cmake" )
+include ( "cmake-modules/executable.cmake" )
+
+# include ( "cmake-modules/library.cmake" )
